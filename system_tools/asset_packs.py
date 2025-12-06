@@ -30,7 +30,7 @@ ASSET_PACK_CATALOG = [
         "id": "male_female_basemesh",
         "name": "T8 Male and Female Base Mesh",
         "version": "1.0",
-        "url": "https://mega.nz/file/onUxFIzT#SW0bUm1azrodS8qaraTRIT4LTdFLCESFhFoKL6EQ9JU",
+        "url": "https://mega.nz/file/puti0YjR#PRO5Y3zjwF759AdyrEdBtzIY-XdCbkmy4KzW2KMqRLw",
         "description": "Male and Female base mesh with MSL+PRP weights and shape keys for all non-special characters.",
         "library_name": "T8 Male and Female",
         # If the extracted zip has a subfolder containing the .blend, put its name here.
@@ -121,15 +121,23 @@ def ensure_dir(path: str):
         os.makedirs(path, exist_ok=True)
 
 
+def _set_library_path(lib, library_root: str):
+    """Set the directory/path on a UserAssetLibrary in a version-agnostic way."""
+    if hasattr(lib, "directory"):
+        lib.directory = library_root
+    else:
+        lib.path = library_root
+
+
 def register_asset_library(pack_def: dict, library_root: str):
     """
     Register the given folder as an Asset Library in Blender preferences.
-    Compatible with Blender 3.6+.
+    Works across 3.6 and 4.x by probing the API instead of relying on version.
     """
     filepaths = bpy.context.preferences.filepaths
     library_name = pack_def.get("library_name") or pack_def["name"]
 
-    # Check if a library with this name already exists
+    # Find existing library by name (if any)
     existing = None
     for lib in filepaths.asset_libraries:
         if lib.name == library_name:
@@ -137,16 +145,31 @@ def register_asset_library(pack_def: dict, library_root: str):
             break
 
     if existing:
-        existing.path = library_root
+        # Just update its path/directory
+        _set_library_path(existing, library_root)
     else:
-        new_lib = filepaths.asset_libraries.new(name=library_name, path=library_root)
-        new_lib.path = library_root
+        # Try the 4.x-style keyword first...
+        try:
+            new_lib = filepaths.asset_libraries.new(
+                name=library_name,
+                directory=library_root,
+            )
+        except TypeError:
+            # ...fall back to the 3.x-style keyword.
+            new_lib = filepaths.asset_libraries.new(
+                name=library_name,
+                path=library_root,
+            )
 
-    # Save user preferences so the library persists
+        _set_library_path(new_lib, library_root)
+
+    # Save user prefs so the library persists for all files
     try:
         bpy.ops.wm.save_userpref()
     except Exception as e:
         print("[AssetPacks] Could not save user preferences:", e)
+
+
 
 
 def extract_zip_to_folder(zip_path: str, dest_folder: str):
@@ -434,27 +457,26 @@ class ASSET_PACK_PT_panel(Panel):
                 op_dl = btn_row.operator(
                     ASSET_PACK_OT_download_install.bl_idname,
                     text="Download & Install",
-                    icon='IMPORT'
                 )
                 op_dl.pack_id = pack["id"]
             else:
                 # MEGA link – guide user instead of direct download
-                btn_row.label(text="MEGA-hosted pack", icon='URL')
+                btn_row.label(text="MEGA-hosted pack")
 
             # These two should ALWAYS show, MEGA or not:
             op_local = btn_row.operator(
                 ASSET_PACK_OT_install_from_local_zip.bl_idname,
                 text="Install From Zip",
-                icon='FILE_ZIP'
             )
             op_local.pack_id = pack["id"]
 
             op_browser = btn_row.operator(
                 ASSET_PACK_OT_open_pack_url.bl_idname,
                 text="Open Page",
-                icon='URL'
             )
             op_browser.pack_id = pack["id"]
+
+
 
             if installed and state:
                 box.label(text=f"Path: {state.install_path}", icon='FILE_FOLDER')
