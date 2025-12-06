@@ -11,12 +11,9 @@ bl_info = {
 import bpy
 from bpy.types import AddonPreferences, Panel
 from bpy.props import BoolProperty
-from .shader_tools import id_system
-from .image_tools import collect_images
 
 # ------------------------------------------------------------------------
 # Imports for submodules
-#   (adjust names if your files are named differently)
 # ------------------------------------------------------------------------
 
 from .baker import (
@@ -45,7 +42,9 @@ from .shader_tools import (
 
 from .system_tools import (
     fbx_root_fix,
+    asset_packs,
 )
+
 
 # For convenience, group modules by feature area
 BAKING_MODULES = (
@@ -68,12 +67,16 @@ MESH_MODULES = (
     rig_match,
 )
 
-ID_SYSTEM_MODULES = (
+SHADER_MODULES = (
     id_system,
 )
 
 FBX_MODULES = (
     fbx_root_fix,
+)
+
+ASSET_PACK_MODULES = (
+    asset_packs,
 )
 
 
@@ -114,6 +117,11 @@ class T8ToolsPreferences(AddonPreferences):
         description="Enable FBX exporter root-bone fix in Object menu",
         default=True,
     )
+    use_asset_packs: BoolProperty(
+        name="Asset Packs",
+        description="Enable Asset Pack tools (download + register asset libraries)",
+        default=True,
+    )
 
     def draw(self, context):
         layout = self.layout
@@ -126,6 +134,7 @@ class T8ToolsPreferences(AddonPreferences):
         col.prop(self, "use_id_system")
         col.separator()
         col.prop(self, "use_fbx_root_fix")
+        col.prop(self, "use_asset_packs")
 
 
 # ------------------------------------------------------------------------
@@ -156,8 +165,6 @@ class VIEW3D_PT_T8Tools_Baking(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        # Actual buttons/controls live in the individual tool panels
-        # inside texture_baker.py / batch_map_baking.py
         layout = self.layout
         layout.label(text="Texture Baker, Batch Map Baking")
 
@@ -247,11 +254,15 @@ def register_submodules():
             mod.register()
 
     if all_on or prefs.use_id_system:
-        for mod in ID_SYSTEM_MODULES:
+        for mod in SHADER_MODULES:
             mod.register()
 
     if all_on or prefs.use_fbx_root_fix:
         for mod in FBX_MODULES:
+            mod.register()
+
+    if all_on or prefs.use_asset_packs:
+        for mod in ASSET_PACK_MODULES:
             mod.register()
 
 
@@ -260,27 +271,32 @@ def unregister_submodules():
     all_on = (prefs is None)
 
     # Unregister in reverse-ish order
-    if all_on or prefs.use_fbx_root_fix:
+
+    if all_on or (prefs and prefs.use_asset_packs):
+        for mod in reversed(ASSET_PACK_MODULES):
+            mod.unregister()
+
+    if all_on or (prefs and prefs.use_fbx_root_fix):
         for mod in reversed(FBX_MODULES):
             mod.unregister()
 
-    if all_on or prefs.use_id_system:
-        for mod in reversed(ID_SYSTEM_MODULES):
+    if all_on or (prefs and prefs.use_id_system):
+        for mod in reversed(SHADER_MODULES):
             mod.unregister()
 
-    if all_on or prefs.use_mesh_tools:
+    if all_on or (prefs and prefs.use_mesh_tools):
         for mod in reversed(MESH_MODULES):
             mod.unregister()
 
-    if all_on or prefs.use_image_tools:
+    if all_on or (prefs and prefs.use_image_tools):
         for mod in reversed(IMAGE_MODULES):
             mod.unregister()
 
-    if all_on or prefs.use_quick_tools:
+    if all_on or (prefs and prefs.use_quick_tools):
         for mod in reversed(QUICK_MODULES):
             mod.unregister()
 
-    if all_on or prefs.use_baking_tools:
+    if all_on or (prefs and prefs.use_baking_tools):
         for mod in reversed(BAKING_MODULES):
             mod.unregister()
 
