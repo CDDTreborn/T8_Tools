@@ -1,7 +1,9 @@
 import bpy
 from bpy.types import Operator, Panel
 
-from .baker.texture_baker import debug_print
+def debug_print(*args, **kwargs):
+    # Simple local debug helper to avoid circular imports
+    print("[T8 QuickTools][Quick Weight Transfer]", *args)
 
 
 class TEXTUREBAKER_OT_add_weight_transfer_mods(Operator):

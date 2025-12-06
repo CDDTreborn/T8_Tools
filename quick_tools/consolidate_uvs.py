@@ -2,7 +2,9 @@ import bpy
 from bpy.types import Operator, Panel
 from mathutils import Vector
 
-from .baker.texture_baker import debug_print
+def debug_print(*args, **kwargs):
+    # Simple local debug helper to avoid circular imports
+    print("[T8 QuickTools][Consolidate UVs]", *args)
 
 
 def tb_create_and_set_active_uv_map(context, settings):

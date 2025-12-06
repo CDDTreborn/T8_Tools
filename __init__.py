@@ -11,31 +11,41 @@ bl_info = {
 import bpy
 from bpy.types import AddonPreferences, Panel
 from bpy.props import BoolProperty
+from .shader_tools import id_system
+from .image_tools import collect_images
 
 # ------------------------------------------------------------------------
 # Imports for submodules
 #   (adjust names if your files are named differently)
 # ------------------------------------------------------------------------
 
-from . import (
-    id_system,
-    rig_match,
-    fbx_root_fix,
-
-    consolidate_uvs,
-    quick_weight_transfer,
-    duplicate_mat_cleanup,
-
-    collect_images,
-    blend_mode_switch,
-)
-
 from .baker import (
     batch_map_baking,
     texture_baker,
 )
 
+from .quick_tools import (
+    consolidate_uvs,
+    quick_weight_transfer,
+    duplicate_mat_cleanup,
+)
 
+from .mesh_tools import (
+    blend_mode_switch,
+    rig_match,
+)
+
+from .image_tools import (
+    collect_images,
+)
+
+from .shader_tools import (
+    id_system,
+)
+
+from .system_tools import (
+    fbx_root_fix,
+)
 
 # For convenience, group modules by feature area
 BAKING_MODULES = (
