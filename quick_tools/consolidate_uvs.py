@@ -174,7 +174,7 @@ class TEXTUREBAKER_PT_quick_uvs(Panel):
         row = box_uv.row(align=True)
         row.prop(settings, "consolidated_uv_name", text="Name")
         box_uv.prop(settings, "consolidated_uv_override")
-        box_uv.operator("texture_baker.consolidate_uvs", text="Create / Pack UVs")
+        box_uv.operator("t8tools.consolidate_uvs", text="Create / Pack UVs")
 
 
 classes = (

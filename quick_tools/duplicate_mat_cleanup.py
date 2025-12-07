@@ -110,7 +110,7 @@ class TEXTUREBAKER_PT_quick_materials(Panel):
         layout = self.layout
         box_mat = layout.box()
         box_mat.label(text="Duplicate Material Cleanup", icon='NODE_MATERIAL')
-        box_mat.operator("texture_baker.cleanup_material_duplicates",
+        box_mat.operator("t8tools.cleanup_material_duplicates",
                          text="Remap Duplicates → Base")
 
 

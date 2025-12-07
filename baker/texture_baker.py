@@ -1276,9 +1276,9 @@ class TEXTUREBAKER_PT_panel(Panel):
         row.prop(settings, "resolution_y")
 
         col.separator()
-        col.operator("texture_baker.build_nodes", text="Build / Refresh Setup")
-        col.operator("texture_baker.bake", text="Bake")
-        col.operator("texture_baker.clear", text="Clear Temporary Nodes")
+        col.operator("t8tools.build_nodes", text="Build / Refresh Setup")
+        col.operator("t8tools.bake", text="Bake")
+        col.operator("t8tools.clear", text="Clear Temporary Nodes")
 
 
 # ---------------------------------------------------------------------------

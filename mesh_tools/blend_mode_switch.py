@@ -63,7 +63,7 @@ class TEXTUREBAKER_PT_blend_mode(Panel):
         box_blend.label(text="Blend Mode Switch", icon='MATERIAL')
         row = box_blend.row(align=True)
         row.prop(settings, "blend_mode", text="")
-        box_blend.operator("texture_baker.set_blend_mode", text="Apply to Selected")
+        box_blend.operator("t8tools.set_blend_mode", text="Apply to Selected")
 
 
 classes = (

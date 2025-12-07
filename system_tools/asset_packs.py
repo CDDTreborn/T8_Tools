@@ -11,6 +11,7 @@ bl_info = {
 import os
 import zipfile
 import urllib.request
+import shutil
 
 import bpy
 from bpy.types import Panel, Operator, PropertyGroup
@@ -27,15 +28,27 @@ from bpy.props import (
 
 ASSET_PACK_CATALOG = [
     {
-        "id": "male_female_basemesh",
-        "name": "T8 Male and Female Base Mesh",
+        "id": "female_basemesh",
+        "name": "T8 Female Base Mesh",
         "version": "1.0",
         "url": "https://mega.nz/file/puti0YjR#PRO5Y3zjwF759AdyrEdBtzIY-XdCbkmy4KzW2KMqRLw",
-        "description": "Male and Female base mesh with MSL+PRP weights and shape keys for all non-special characters.",
-        "library_name": "T8 Male and Female",
+        "description": "Female base mesh with MSL+PRP weights and shape keys for all non-special characters.",
+        "library_name": "T8 Female Base Mesh",
         # If the extracted zip has a subfolder containing the .blend, put its name here.
         # If the .blend is directly in the root of the extracted folder, use "" instead.
         "inner_folder": "New_Female_BaseMesh",
+    },
+
+        {
+        "id": "male_basemesh",
+        "name": "T8 Male Base Mesh",
+        "version": "1.0",
+        "url": "https://mega.nz/file/A3cURYDb#WuQ8yIVkRZYlTgd-xG1FUB8ON9k5AgL8VsEuNZVlZ-s",
+        "description": "Male base mesh with MSL+PRP weights and shape keys for all non-special characters.",
+        "library_name": "T8 Male Base Mesh",
+        # # If the extracted zip has a subfolder containing the .blend, put its name here.
+        # # If the .blend is directly in the root of the extracted folder, use "" instead.
+        "inner_folder": "New_Male_BaseMesh",
     },
 ]
 
@@ -169,6 +182,53 @@ def register_asset_library(pack_def: dict, library_root: str):
     except Exception as e:
         print("[AssetPacks] Could not save user preferences:", e)
 
+def _get_library_path(lib):
+    """Get the path/directory for a UserAssetLibrary in a version-agnostic way."""
+    if hasattr(lib, "directory"):
+        return lib.directory
+    return lib.path
+
+
+def unregister_asset_library(pack_def: dict, library_root: str):
+    """
+    Remove the asset library entry that points to this pack, if any.
+    """
+    filepaths = bpy.context.preferences.filepaths
+    library_name = pack_def.get("library_name") or pack_def["name"]
+
+    libs_to_remove = []
+
+    for lib in filepaths.asset_libraries:
+        if lib.name != library_name:
+            continue
+
+        lib_path = _get_library_path(lib)
+        if lib_path:
+            lib_abs = os.path.abspath(bpy.path.abspath(lib_path))
+            root_abs = os.path.abspath(library_root)
+            if lib_abs != root_abs:
+                continue
+
+        # This library matches by name and path – mark for removal
+        libs_to_remove.append(lib)
+
+    # Remove the actual UserAssetLibrary objects
+    for lib in libs_to_remove:
+        try:
+            filepaths.asset_libraries.remove(lib)
+        except TypeError:
+            # Fallback for older API that expects index
+            try:
+                idx = list(filepaths.asset_libraries).index(lib)
+                filepaths.asset_libraries.remove(idx)
+            except Exception:
+                pass
+
+    if libs_to_remove:
+        try:
+            bpy.ops.wm.save_userpref()
+        except Exception as e:
+            print("[AssetPacks] Could not save user preferences (unregister):", e)
 
 
 
@@ -331,6 +391,14 @@ class ASSET_PACK_OT_install_from_local_zip(Operator):
 
         pack_folder_name = pack["id"]
         pack_install_dir = os.path.join(install_root, pack_folder_name)
+        # If the pack is already installed, wipe the folder first so this acts as a clean reinstall
+        if os.path.isdir(pack_install_dir):
+            try:
+                shutil.rmtree(pack_install_dir)
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to clear existing install folder: {e}")
+                return {'CANCELLED'}
+
         ensure_dir(pack_install_dir)
 
         self.report({'INFO'}, f"Extracting {pack['name']} from local zip...")
@@ -388,6 +456,62 @@ class ASSET_PACK_OT_open_pack_url(Operator):
         self.report({'INFO'}, f"Opened browser for: {pack['name']}")
         return {'FINISHED'}
 
+class ASSET_PACK_OT_uninstall(Operator):
+    """Remove the installed files and asset library entry for a pack."""
+    bl_idname = "asset_packs.uninstall"
+    bl_label = "Uninstall Pack"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    pack_id: StringProperty()
+
+    def execute(self, context):
+        pack = get_pack_by_id(self.pack_id)
+        if not pack:
+            self.report({'ERROR'}, f"Unknown pack id: {self.pack_id}")
+            return {'CANCELLED'}
+
+        settings = get_settings(context)
+        if not settings.install_root:
+            self.report(
+                {'ERROR'},
+                "Install Root is not set. Nothing to uninstall."
+            )
+            return {'CANCELLED'}
+
+        install_root = bpy.path.abspath(settings.install_root)
+        pack_folder = os.path.join(install_root, pack["id"])
+
+        # Reconstruct library_root the same way we did during install
+        inner_folder = pack.get("inner_folder") or ""
+        if inner_folder:
+            library_root = os.path.join(pack_folder, inner_folder)
+        else:
+            library_root = pack_folder
+        library_root = os.path.abspath(library_root)
+
+        # Remove asset library entry
+        unregister_asset_library(pack, library_root)
+
+        # Delete the installed files
+        if os.path.isdir(pack_folder):
+            try:
+                shutil.rmtree(pack_folder)
+            except Exception as e:
+                self.report({'ERROR'}, f"Failed to remove install folder: {e}")
+                return {'CANCELLED'}
+
+        # Remove state entry
+        idx_to_remove = None
+        for i, state in enumerate(settings.installed_packs):
+            if state.pack_id == pack["id"]:
+                idx_to_remove = i
+                break
+        if idx_to_remove is not None:
+            settings.installed_packs.remove(idx_to_remove)
+
+        self.report({'INFO'}, f"Uninstalled pack: {pack['name']}")
+        debug_print(context, "Uninstalled pack folder:", pack_folder)
+        return {'FINISHED'}
 
 # ------------------------------------------------------------------------
 # UI Panel
@@ -453,20 +577,19 @@ class ASSET_PACK_PT_panel(Panel):
             btn_row = box.row(align=True)
 
             if not is_mega:
-                # Normal HTTP/HTTPS link – allow direct download
                 op_dl = btn_row.operator(
                     ASSET_PACK_OT_download_install.bl_idname,
                     text="Download & Install",
                 )
                 op_dl.pack_id = pack["id"]
             else:
-                # MEGA link – guide user instead of direct download
                 btn_row.label(text="MEGA-hosted pack")
 
-            # These two should ALWAYS show, MEGA or not:
+            # If already installed, this acts as "Reinstall From Zip"
+            local_label = "Reinstall From Zip" if installed else "Install From Zip"
             op_local = btn_row.operator(
                 ASSET_PACK_OT_install_from_local_zip.bl_idname,
-                text="Install From Zip",
+                text=local_label,
             )
             op_local.pack_id = pack["id"]
 
@@ -475,6 +598,16 @@ class ASSET_PACK_PT_panel(Panel):
                 text="Open Page",
             )
             op_browser.pack_id = pack["id"]
+
+            # Extra row for uninstall when installed
+            if installed:
+                row_un = box.row(align=True)
+                op_un = row_un.operator(
+                    ASSET_PACK_OT_uninstall.bl_idname,
+                    text="Uninstall Pack",
+                )
+                op_un.pack_id = pack["id"]
+
 
 
 
@@ -492,6 +625,7 @@ classes = (
     ASSET_PACK_OT_download_install,
     ASSET_PACK_OT_install_from_local_zip,
     ASSET_PACK_OT_open_pack_url,
+    ASSET_PACK_OT_uninstall,          # <-- add this
     ASSET_PACK_PT_panel,
 )
 

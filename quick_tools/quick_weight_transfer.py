@@ -137,9 +137,9 @@ class TEXTUREBAKER_PT_quick_weights(Panel):
         box_weight.label(text="Quick Weight Transfer", icon='MOD_DATA_TRANSFER')
         box_weight.prop(settings, "auto_generate_data_layers",
                         text="Auto-generate Data Layers")
-        box_weight.operator("texture_baker.add_weight_transfer_mods",
+        box_weight.operator("t8tools.add_weight_transfer_mods",
                             text="Add Data Transfer Modifiers")
-        box_weight.operator("texture_baker.clear_vertex_groups",
+        box_weight.operator("t8tools.clear_vertex_groups",
                             text="Delete Vertex Groups")
 
 

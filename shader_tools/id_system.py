@@ -1316,7 +1316,7 @@ class NODE_PT_IDSystem(Panel):
         # Init
         box = layout.box()
         box.label(text="Initialization", icon='FILE_NEW')
-        box.operator("idsystem.init_masks", icon='IMAGE_DATA')
+        box.operator("t8tools.init_masks", icon='IMAGE_DATA')
 
         # Usage / Split
         box = layout.box()
@@ -1358,7 +1358,7 @@ class NODE_PT_IDSystem(Panel):
         row.prop(settings, "id_use_15", text="ID 15")
         row.prop(settings, "id_use_16", text="ID 16")
 
-        box.operator("idsystem.build_split", icon='SORTBYEXT')
+        box.operator("t8tools.build_split", icon='SORTBYEXT')
         split = settings.split_rgba
         box.label(text=f"Split Number (R,G,B,A): {split[0]} {split[1]} {split[2]} {split[3]}")
 
@@ -1367,13 +1367,13 @@ class NODE_PT_IDSystem(Panel):
         box.label(text="Mask Painting", icon='BRUSH_DATA')
         box.prop(settings, "active_paint_id", text="Paint ID")
         box.prop(settings, "paint_mix_color", text="Paint Color")   # <-- add this
-        box.operator("idsystem.set_paint_id", icon='TPAINT_HLT')
+        box.operator("t8tools.set_paint_id", icon='TPAINT_HLT')
 
         # Mix helpers
         box = layout.box()
         box.label(text="ID Mix Helpers", icon='NODETREE')
-        box.operator("idsystem.add_id_mix_color", icon='SHADING_RENDERED')
-        box.operator("idsystem.add_id_mix_normal", icon='SHADING_SOLID')
+        box.operator("t8tools.add_id_mix_color", icon='SHADING_RENDERED')
+        box.operator("t8tools.add_id_mix_normal", icon='SHADING_SOLID')
 
 
 # -------------------------------------------------------------------------
