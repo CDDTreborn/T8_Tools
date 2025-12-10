@@ -25,6 +25,7 @@ from .quick_tools import (
     consolidate_uvs,
     quick_weight_transfer,
     duplicate_mat_cleanup,
+    modifier_pause,
 )
 
 from .mesh_tools import (
@@ -56,6 +57,7 @@ QUICK_MODULES = (
     consolidate_uvs,
     quick_weight_transfer,
     duplicate_mat_cleanup,
+    modifier_pause,
 )
 
 IMAGE_MODULES = (
@@ -180,7 +182,7 @@ class VIEW3D_PT_T8Tools_Quick(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Consolidate UVs, Quick Weight Transfer, Duplicate Material Cleanup")
+        layout.label(text="Consolidate UVs, Quick Weight Transfer, Duplicate Material Cleanup, Mofifier Puase")
 
 
 class VIEW3D_PT_T8Tools_Image(Panel):
