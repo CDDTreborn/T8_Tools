@@ -73,7 +73,7 @@ class TEXTUREBAKER_OT_batch_bake(Operator):
                 self.report({'INFO'}, f"Batch baking {map_type} ({i+1}/{total})...")
 
                 # Call the existing single bake operator
-                result = bpy.ops.texture_baker.bake('EXEC_DEFAULT')
+                result = bpy.ops.t8tools.bake('EXEC_DEFAULT')
                 if result != {'FINISHED'}:
                     self.report({'ERROR'}, f"Batch bake aborted while baking {map_type}.")
                     break
@@ -155,7 +155,7 @@ class TEXTUREBAKER_PT_batch(Panel):
 
         layout.separator()
         layout.operator(
-            "texture_baker.batch_bake",
+            "t8tools.batch_bake",
             text="Batch Bake to Folder...",
             icon='RENDER_STILL'
         )

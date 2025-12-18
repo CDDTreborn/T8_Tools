@@ -31,6 +31,7 @@ from .quick_tools import (
 from .mesh_tools import (
     blend_mode_switch,
     rig_match,
+    multires_pipeline,
 )
 
 from .image_tools import (
@@ -67,6 +68,7 @@ IMAGE_MODULES = (
 MESH_MODULES = (
     blend_mode_switch,
     rig_match,
+    multires_pipeline,
 )
 
 SHADER_MODULES = (
