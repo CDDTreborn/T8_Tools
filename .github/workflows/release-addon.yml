@@ -1,0 +1,46 @@
+name: Build Blender Addon Zip
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare addon folder
+        run: |
+          set -eux
+          ADDON_NAME="T8_Tools"
+          VERSION="${GITHUB_REF_NAME}"  # tag name, e.g. v1.0.3 or 1.0.3
+
+          # Clean junk
+          find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find . -type f -name "*.pyc" -delete
+
+          # Create staging folder with a STABLE root folder name
+          rm -rf dist
+          mkdir -p "dist/${ADDON_NAME}"
+
+          # Copy repo contents into dist/T8_Tools, excluding git + workflow + dist itself
+          rsync -av \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude "dist" \
+            ./ "dist/${ADDON_NAME}/"
+
+          # Zip it so inside is always T8_Tools/
+          cd dist
+          zip -r "../${ADDON_NAME}-${VERSION}.zip" "${ADDON_NAME}"
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: T8_Tools-*.zip
