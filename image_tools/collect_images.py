@@ -130,7 +130,7 @@ class TEXTUREBAKER_PT_image_tools(Panel):
         layout.label(text="Collect Images:", icon='IMAGE_DATA')
         layout.label(text="From materials on selected meshes")
         layout.operator(
-            "texture_baker.collect_images_from_selected",
+            "t8tools.collect_images_from_selected",
             text="Collect Images From Selected (Choose Folder)",
             icon='FILE_FOLDER'
         )
