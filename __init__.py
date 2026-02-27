@@ -26,6 +26,7 @@ from .quick_tools import (
     quick_weight_transfer,
     duplicate_mat_cleanup,
     modifier_pause,
+    rig_parent_export,  # NEW
 )
 
 from .mesh_tools import (
@@ -59,6 +60,7 @@ QUICK_MODULES = (
     quick_weight_transfer,
     duplicate_mat_cleanup,
     modifier_pause,
+    rig_parent_export,  # NEW
 )
 
 IMAGE_MODULES = (
