@@ -77,6 +77,11 @@ def _validate_mappings(context):
             entry.is_valid = False
             continue
 
+        if custom == target:
+            entry.status = "Already matches"
+            entry.is_valid = False
+            continue
+
         used_custom.setdefault(custom, []).append(i)
         used_target.setdefault(target, []).append(i)
 
