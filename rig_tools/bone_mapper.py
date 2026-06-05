@@ -335,8 +335,8 @@ class VIEW3D_PT_T8Tools_BoneMapper(Panel):
                 op = header.operator("t8tools.bone_mapper_remove_row", text="", icon='X')
                 op.index = i
 
-                box.prop(entry, "custom_bone", text="Custom")
-                box.prop(entry, "target_bone", text="Rename To")
+                box.prop_search(entry, "custom_bone", s.custom_rig.data, "bones", text="Custom")
+                box.prop_search(entry, "target_bone", s.target_rig.data, "bones", text="Rename To")
 
                 status_row = box.row()
                 icon = 'CHECKMARK' if entry.is_valid else 'ERROR'
