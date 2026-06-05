@@ -8,6 +8,11 @@ from bpy.props import PointerProperty, BoolProperty, EnumProperty, StringPropert
 # Utilities
 # ---------------------------------------------------------------------------
 
+def _get_active_mesh_name(context, meshes):
+    active = context.view_layer.objects.active
+    if active and active.type == 'MESH' and active in meshes:
+        return active.name
+    return meshes[0].name
 
 def _stash_object_visibility(obj):
     """Capture visibility/selectability state we can restore later."""
@@ -363,7 +368,8 @@ class T8TOOLS_OT_ExportSelectedFBX(Operator):
             return {'CANCELLED'}
 
         export_dir = _ensure_export_dir(scene)
-        filename = _build_filename(meshes[0].name, self.rig_type)
+        base_name = _get_active_mesh_name(context, meshes)
+        filename = _build_filename(base_name, self.rig_type)
         filepath = os.path.join(export_dir, filename)
 
         if s.overwrite_mode == 'WARN' and os.path.exists(filepath):
@@ -392,7 +398,8 @@ class T8TOOLS_OT_ExportSelectedFBX(Operator):
         # User sets *their* settings; later runs are deterministic.
         if not _last_fbx_is_initialized():
             export_dir = _ensure_export_dir(scene)
-            filename = _build_filename(meshes[0].name, self.rig_type)
+            base_name = _get_active_mesh_name(context, meshes)
+            filename = _build_filename(base_name, self.rig_type)
             filepath = os.path.join(export_dir, filename)
 
             # Force ONLY the two required toggles in the UI pass as well:
@@ -419,7 +426,8 @@ class T8TOOLS_OT_ExportSelectedFBX(Operator):
             filepath = getattr(self, "_pending_path", "")
             if not filepath:
                 export_dir = _ensure_export_dir(scene)
-                filename = _build_filename(meshes[0].name, self.rig_type)
+                base_name = _get_active_mesh_name(context, meshes)
+                filename = _build_filename(base_name, self.rig_type)
                 filepath = os.path.join(export_dir, filename)
 
             _export_fbx_with_forced_flags(filepath)
@@ -467,7 +475,7 @@ class T8TOOLS_OT_ExportBothRigs(Operator):
             return {'CANCELLED'}
 
         export_dir = _ensure_export_dir(scene)
-        base = meshes[0].name
+        base = _get_active_mesh_name(context, meshes)
         path_msl = os.path.join(export_dir, _build_filename(base, 'MSL'))
         path_prp = os.path.join(export_dir, _build_filename(base, 'PRP'))
 
@@ -493,7 +501,7 @@ class T8TOOLS_OT_ExportBothRigs(Operator):
         path_msl, path_prp = self._paths if self._paths else ("", "")
         if not path_msl or not path_prp:
             export_dir = _ensure_export_dir(scene)
-            base = meshes[0].name
+            base = _get_active_mesh_name(context, meshes)
             path_msl = os.path.join(export_dir, _build_filename(base, 'MSL'))
             path_prp = os.path.join(export_dir, _build_filename(base, 'PRP'))
 
