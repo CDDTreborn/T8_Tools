@@ -1,4 +1,7 @@
 import bpy
+import json
+import os
+
 from bpy.types import Panel, Operator, PropertyGroup
 from bpy.props import (
     PointerProperty,
@@ -114,16 +117,17 @@ def _validate_mappings(context):
 # ---------------------------------------------------------------------------
 
 class T8BoneMapEntry(PropertyGroup):
-    custom_bone: EnumProperty(
+
+    custom_bone: StringProperty(
         name="Custom Bone",
         description="Bone on the custom/source rig that will be renamed",
-        items=_enum_custom_bones,
+        default="",
     )
 
-    target_bone: EnumProperty(
+    target_bone: StringProperty(
         name="Target Bone",
         description="Tekken/reference bone name to rename into",
-        items=_enum_target_bones,
+        default="",
     )
 
     status: StringProperty(
@@ -163,6 +167,13 @@ class T8BoneMapperSettings(PropertyGroup):
             ('SKIP', "Skip", "Skip rows where the target name already exists"),
         ],
         default='SKIP',
+    )
+
+    preset_path: StringProperty(
+        name="Preset File",
+        description="JSON file used to save/load bone mapping presets",
+        subtype='FILE_PATH',
+        default="//bone_mapping_preset.json",
     )
 
 
@@ -296,6 +307,88 @@ class T8TOOLS_OT_BoneMapper_Apply(Operator):
 
         self.report({'INFO'}, f"Bone Mapper finished: {renamed} renamed, {skipped} skipped.")
         return {'FINISHED'}
+    
+class T8TOOLS_OT_BoneMapper_SavePreset(Operator):
+    bl_idname = "t8tools.bone_mapper_save_preset"
+    bl_label = "Save Bone Mapping Preset"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        s = context.scene.t8_bone_mapper_settings
+        path = bpy.path.abspath(s.preset_path)
+
+        if not path:
+            self.report({'ERROR'}, "Preset path is empty.")
+            return {'CANCELLED'}
+
+        data = {
+            "version": 1,
+            "custom_rig_hint": s.custom_rig.name if s.custom_rig else "",
+            "target_rig_hint": s.target_rig.name if s.target_rig else "",
+            "mappings": [
+                {
+                    "custom": entry.custom_bone,
+                    "target": entry.target_bone,
+                }
+                for entry in s.mappings
+                if entry.custom_bone and entry.target_bone
+            ],
+        }
+
+        try:
+            folder = os.path.dirname(path)
+            if folder:
+                os.makedirs(folder, exist_ok=True)
+
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+
+        except Exception as ex:
+            self.report({'ERROR'}, f"Failed to save preset: {ex}")
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, f"Saved preset: {os.path.basename(path)}")
+        return {'FINISHED'}
+
+
+class T8TOOLS_OT_BoneMapper_LoadPreset(Operator):
+    bl_idname = "t8tools.bone_mapper_load_preset"
+    bl_label = "Load Bone Mapping Preset"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        s = context.scene.t8_bone_mapper_settings
+        path = bpy.path.abspath(s.preset_path)
+
+        if not os.path.exists(path):
+            self.report({'ERROR'}, "Preset file does not exist.")
+            return {'CANCELLED'}
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            mappings = data.get("mappings", [])
+
+            s.mappings.clear()
+
+            for item in mappings:
+                entry = s.mappings.add()
+                entry.custom_bone = item.get("custom", "")
+                entry.target_bone = item.get("target", "")
+                entry.status = "Loaded"
+                entry.is_valid = False
+
+            _validate_mappings(context)
+
+        except Exception as ex:
+            self.report({'ERROR'}, f"Failed to load preset: {ex}")
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, f"Loaded preset: {len(s.mappings)} mapping(s).")
+        return {'FINISHED'}
+    
+
 
 
 # ---------------------------------------------------------------------------
@@ -350,6 +443,17 @@ class VIEW3D_PT_T8Tools_BoneMapper(Panel):
         layout.separator()
 
         col = layout.column(align=True)
+        col.label(text="Presets")
+        col.prop(s, "preset_path")
+
+        row = col.row(align=True)
+        row.operator("t8tools.bone_mapper_save_preset", text="Save Preset", icon='FILE_TICK')
+        row.operator("t8tools.bone_mapper_load_preset", text="Load Preset", icon='FILE_FOLDER')
+
+
+        layout.separator()
+
+        col = layout.column(align=True)
         col.operator("t8tools.bone_mapper_validate", text="Validate Mapping", icon='VIEWZOOM')
         col.operator("t8tools.bone_mapper_apply", text="Apply Bone Renames", icon='ARMATURE_DATA')
 
@@ -366,6 +470,8 @@ classes = (
     T8TOOLS_OT_BoneMapper_ClearRows,
     T8TOOLS_OT_BoneMapper_Validate,
     T8TOOLS_OT_BoneMapper_Apply,
+    T8TOOLS_OT_BoneMapper_SavePreset,
+    T8TOOLS_OT_BoneMapper_LoadPreset,
     VIEW3D_PT_T8Tools_BoneMapper,
 )
 
