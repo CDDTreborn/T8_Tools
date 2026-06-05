@@ -35,6 +35,10 @@ from .mesh_tools import (
     multires_pipeline,
 )
 
+from .rig_tools import (
+    bone_mapper,
+)
+
 from .image_tools import (
     collect_images,
 )
@@ -71,6 +75,10 @@ MESH_MODULES = (
     blend_mode_switch,
     rig_match,
     multires_pipeline,
+)
+
+RIG_MODULES = (
+    bone_mapper,
 )
 
 SHADER_MODULES = (
@@ -113,6 +121,13 @@ class T8ToolsPreferences(AddonPreferences):
         description="Enable Mesh Tools (Blend Mode Switch, Rig Matcher)",
         default=True,
     )
+    
+    use_rig_tools: BoolProperty(
+        name="Rig Tools",
+        description="Enable Rig Tools (Bone Mapper)",
+        default=True,
+    )
+
     use_id_system: BoolProperty(
         name="ID System (Shader Editor)",
         description="Enable ID System panel in Shader Editor",
@@ -137,6 +152,7 @@ class T8ToolsPreferences(AddonPreferences):
         col.prop(self, "use_quick_tools")
         col.prop(self, "use_image_tools")
         col.prop(self, "use_mesh_tools")
+        col.prop(self, "use_rig_tools")
         col.prop(self, "use_id_system")
         col.separator()
         col.prop(self, "use_fbx_root_fix")
@@ -216,6 +232,19 @@ class VIEW3D_PT_T8Tools_Mesh(Panel):
         layout = self.layout
         layout.label(text="Blend Mode Switch, Rig Matcher")
 
+class VIEW3D_PT_T8Tools_Rig(Panel):
+    bl_label = "Rig Tools"
+    bl_idname = "VIEW3D_PT_t8tools_rig"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "T8 Tools"
+    bl_parent_id = "VIEW3D_PT_t8tools_root"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Bone Mapper")
+
 
 CORE_CLASSES = (
     T8ToolsPreferences,
@@ -224,6 +253,7 @@ CORE_CLASSES = (
     VIEW3D_PT_T8Tools_Quick,
     VIEW3D_PT_T8Tools_Image,
     VIEW3D_PT_T8Tools_Mesh,
+    VIEW3D_PT_T8Tools_Rig,
 )
 
 
@@ -259,6 +289,10 @@ def register_submodules():
         for mod in MESH_MODULES:
             mod.register()
 
+    if all_on or prefs.use_rig_tools:
+        for mod in RIG_MODULES:
+            mod.register()
+
     if all_on or prefs.use_id_system:
         for mod in SHADER_MODULES:
             mod.register()
@@ -292,6 +326,10 @@ def unregister_submodules():
 
     if all_on or (prefs and prefs.use_mesh_tools):
         for mod in reversed(MESH_MODULES):
+            mod.unregister()
+
+    if all_on or (prefs and prefs.use_rig_tools):
+        for mod in reversed(RIG_MODULES):
             mod.unregister()
 
     if all_on or (prefs and prefs.use_image_tools):
