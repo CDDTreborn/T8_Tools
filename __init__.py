@@ -49,7 +49,7 @@ from .shader_tools import (
 
 from .system_tools import (
     fbx_root_fix,
-    asset_packs,
+    # asset_packs,
 )
 
 
@@ -89,9 +89,9 @@ FBX_MODULES = (
     fbx_root_fix,
 )
 
-ASSET_PACK_MODULES = (
-    asset_packs,
-)
+# ASSET_PACK_MODULES = (
+#     asset_packs,
+# )
 
 
 # ------------------------------------------------------------------------
@@ -138,11 +138,11 @@ class T8ToolsPreferences(AddonPreferences):
         description="Enable FBX exporter root-bone fix in Object menu",
         default=True,
     )
-    use_asset_packs: BoolProperty(
-        name="Asset Packs",
-        description="Enable Asset Pack tools (download + register asset libraries)",
-        default=True,
-    )
+    # use_asset_packs: BoolProperty(
+    #     name="Asset Packs",
+    #     description="Enable Asset Pack tools (download + register asset libraries)",
+    #     default=True,
+    # )
 
     def draw(self, context):
         layout = self.layout
@@ -156,7 +156,7 @@ class T8ToolsPreferences(AddonPreferences):
         col.prop(self, "use_id_system")
         col.separator()
         col.prop(self, "use_fbx_root_fix")
-        col.prop(self, "use_asset_packs")
+        # col.prop(self, "use_asset_packs")
 
 
 # ------------------------------------------------------------------------
@@ -301,9 +301,9 @@ def register_submodules():
         for mod in FBX_MODULES:
             mod.register()
 
-    if all_on or prefs.use_asset_packs:
-        for mod in ASSET_PACK_MODULES:
-            mod.register()
+    # if all_on or prefs.use_asset_packs:
+    #     for mod in ASSET_PACK_MODULES:
+    #         mod.register()
 
 
 def unregister_submodules():
@@ -312,9 +312,9 @@ def unregister_submodules():
 
     # Unregister in reverse-ish order
 
-    if all_on or (prefs and prefs.use_asset_packs):
-        for mod in reversed(ASSET_PACK_MODULES):
-            mod.unregister()
+    # if all_on or (prefs and prefs.use_asset_packs):
+    #     for mod in reversed(ASSET_PACK_MODULES):
+    #         mod.unregister()
 
     if all_on or (prefs and prefs.use_fbx_root_fix):
         for mod in reversed(FBX_MODULES):

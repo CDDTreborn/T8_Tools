@@ -185,6 +185,10 @@ class T8TOOLS_OT_BoneMapper_AddRow(Operator):
     bl_idname = "t8tools.bone_mapper_add_row"
     bl_label = "Add Bone Mapping"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = (
+        "Create an empty mapping row. "
+        "Choose a custom bone and the target bone name it should be renamed to."
+    )
 
     def execute(self, context):
         s = context.scene.t8_bone_mapper_settings
@@ -198,6 +202,12 @@ class T8TOOLS_OT_BoneMapper_RemoveRow(Operator):
     bl_idname = "t8tools.bone_mapper_remove_row"
     bl_label = "Remove Bone Mapping"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = (
+        "Remove all mapping rows from the current session. "
+        "Does not modify rigs or preset files."
+    )
+        
+
 
     index: IntProperty(default=-1)
 
@@ -233,6 +243,10 @@ class T8TOOLS_OT_BoneMapper_Validate(Operator):
     bl_idname = "t8tools.bone_mapper_validate"
     bl_label = "Validate Bone Mapping"
     bl_options = {'REGISTER'}
+    bl_description = (
+        "Validates and updates status of the bone renaming process."
+        "Does not rename bones."
+    )
 
     def execute(self, context):
         s = context.scene.t8_bone_mapper_settings
@@ -258,6 +272,10 @@ class T8TOOLS_OT_BoneMapper_Apply(Operator):
     bl_idname = "t8tools.bone_mapper_apply"
     bl_label = "Apply Bone Renames"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = (
+        "(Desctructive Action) Applies the new name to the bones."
+
+    )
 
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
@@ -312,6 +330,9 @@ class T8TOOLS_OT_BoneMapper_SavePreset(Operator):
     bl_idname = "t8tools.bone_mapper_save_preset"
     bl_label = "Save Bone Mapping Preset"
     bl_options = {'REGISTER'}
+    bl_description = (
+        "Save mappings to the selected Preset File"
+    )
 
     def execute(self, context):
         s = context.scene.t8_bone_mapper_settings
@@ -355,6 +376,9 @@ class T8TOOLS_OT_BoneMapper_LoadPreset(Operator):
     bl_idname = "t8tools.bone_mapper_load_preset"
     bl_label = "Load Bone Mapping Preset"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_description = (
+        "Loads mappings from the file identified in the Preset File"
+    )
 
     def execute(self, context):
         s = context.scene.t8_bone_mapper_settings
@@ -388,7 +412,133 @@ class T8TOOLS_OT_BoneMapper_LoadPreset(Operator):
         self.report({'INFO'}, f"Loaded preset: {len(s.mappings)} mapping(s).")
         return {'FINISHED'}
     
+class T8TOOLS_OT_BoneMapper_SelectMappedBones(Operator):
+    bl_idname = "t8tools.bone_mapper_select_mapped_bones"
+    bl_label = "Select Mapped Bones"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = (
+        "Opens Bone Edit mode and selects all bones on the Custom Rig."
+        "If bones have been renamed it will select bones based on new name."
 
+    )
+
+    def execute(self, context):
+        s = context.scene.t8_bone_mapper_settings
+        rig = s.custom_rig
+
+        if not rig or rig.type != 'ARMATURE':
+            self.report({'ERROR'}, "Custom Rig is not set.")
+            return {'CANCELLED'}
+
+        if not s.mappings:
+            self.report({'ERROR'}, "No mappings to select.")
+            return {'CANCELLED'}
+
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+
+        rig.select_set(True)
+        context.view_layer.objects.active = rig
+
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        for bone in rig.data.edit_bones:
+            bone.select = False
+            bone.select_head = False
+            bone.select_tail = False
+
+        selected = 0
+        missing = 0
+        seen = set()
+
+        for entry in s.mappings:
+            custom_name = entry.custom_bone.strip()
+            target_name = entry.target_bone.strip()
+
+            bone = None
+            selected_name = ""
+
+            if custom_name:
+                bone = rig.data.edit_bones.get(custom_name)
+                selected_name = custom_name if bone else ""
+
+            if not bone and target_name:
+                bone = rig.data.edit_bones.get(target_name)
+                selected_name = target_name if bone else ""
+
+            if bone and selected_name not in seen:
+                bone.select = True
+                bone.select_head = True
+                bone.select_tail = True
+                seen.add(selected_name)
+                selected += 1
+            elif not bone:
+                missing += 1
+
+        self.report({'INFO'}, f"Selected {selected} mapped bone(s). Missing {missing}.")
+        return {'FINISHED'}
+
+class T8TOOLS_OT_BoneMapper_AddRowsFromSelection(Operator):
+    bl_idname = "t8tools.bone_mapper_add_rows_from_selection"
+    bl_label = "Add Rows From Selected Bones"
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = (
+        "Adds a mapping for every bone currently selected in bone Pose/Edit mode."
+    )
+
+    def execute(self, context):
+        s = context.scene.t8_bone_mapper_settings
+        rig = s.custom_rig
+
+        if not rig or rig.type != 'ARMATURE':
+            self.report({'ERROR'}, "Custom Rig is not set.")
+            return {'CANCELLED'}
+
+        active = context.view_layer.objects.active
+        if active != rig:
+            self.report({'ERROR'}, "Custom Rig must be the active object.")
+            return {'CANCELLED'}
+
+        selected_names = []
+
+        if context.mode == 'EDIT_ARMATURE':
+            selected_names = [
+                b.name for b in rig.data.edit_bones
+                if b.select or b.select_head or b.select_tail
+            ]
+
+        elif context.mode == 'POSE':
+            selected_names = [
+                b.name for b in context.selected_pose_bones
+                if b and b.id_data == rig
+            ]
+
+        else:
+            self.report({'ERROR'}, "Select bones in Edit Mode or Pose Mode.")
+            return {'CANCELLED'}
+
+        if not selected_names:
+            self.report({'ERROR'}, "No bones selected.")
+            return {'CANCELLED'}
+
+        existing_custom = {entry.custom_bone for entry in s.mappings}
+        added = 0
+        skipped = 0
+
+        for name in selected_names:
+            if name in existing_custom:
+                skipped += 1
+                continue
+
+            entry = s.mappings.add()
+            entry.custom_bone = name
+            entry.target_bone = ""
+            entry.status = "Needs target"
+            entry.is_valid = False
+            added += 1
+
+        self.report({'INFO'}, f"Added {added} row(s) from selection. Skipped {skipped} duplicate(s).")
+        return {'FINISHED'}
 
 
 # ---------------------------------------------------------------------------
@@ -418,6 +568,9 @@ class VIEW3D_PT_T8Tools_BoneMapper(Panel):
         row = layout.row(align=True)
         row.operator("t8tools.bone_mapper_add_row", text="Add Mapping", icon='ADD')
         row.operator("t8tools.bone_mapper_clear_rows", text="Clear", icon='TRASH')
+
+        row = layout.row(align=True)
+        row.operator("t8tools.bone_mapper_add_rows_from_selection", text="Add Mapping From Selection", icon='GROUP_BONE')
 
         layout.separator()
 
@@ -449,6 +602,7 @@ class VIEW3D_PT_T8Tools_BoneMapper(Panel):
         row = col.row(align=True)
         row.operator("t8tools.bone_mapper_save_preset", text="Save Preset", icon='FILE_TICK')
         row.operator("t8tools.bone_mapper_load_preset", text="Load Preset", icon='FILE_FOLDER')
+        col.operator("t8tools.bone_mapper_select_mapped_bones", text="Select Mapped Bones", icon='BONE_DATA')
 
 
         layout.separator()
@@ -472,6 +626,8 @@ classes = (
     T8TOOLS_OT_BoneMapper_Apply,
     T8TOOLS_OT_BoneMapper_SavePreset,
     T8TOOLS_OT_BoneMapper_LoadPreset,
+    T8TOOLS_OT_BoneMapper_SelectMappedBones,
+    T8TOOLS_OT_BoneMapper_AddRowsFromSelection,
     VIEW3D_PT_T8Tools_BoneMapper,
 )
 
