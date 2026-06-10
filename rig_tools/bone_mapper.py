@@ -352,7 +352,8 @@ class T8TOOLS_OT_BoneMapper_SavePreset(Operator):
                     "target": entry.target_bone,
                 }
                 for entry in s.mappings
-                if entry.custom_bone and entry.target_bone
+                if entry.custom_bone 
+                # and entry.target_bone
             ],
         }
 

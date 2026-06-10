@@ -37,6 +37,7 @@ from .mesh_tools import (
 
 from .rig_tools import (
     bone_mapper,
+    rig_shape_key_bone_aligner,
 )
 
 from .image_tools import (
@@ -79,6 +80,7 @@ MESH_MODULES = (
 
 RIG_MODULES = (
     bone_mapper,
+    rig_shape_key_bone_aligner,
 )
 
 SHADER_MODULES = (
@@ -124,7 +126,7 @@ class T8ToolsPreferences(AddonPreferences):
     
     use_rig_tools: BoolProperty(
         name="Rig Tools",
-        description="Enable Rig Tools (Bone Mapper)",
+        description="Enable Rig Tools (Bone Mapper, Shape Key Bone Align)",
         default=True,
     )
 
@@ -243,7 +245,7 @@ class VIEW3D_PT_T8Tools_Rig(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Bone Mapper")
+        layout.label(text="Bone Mapper, Shape Key Bone Align")
 
 
 CORE_CLASSES = (
