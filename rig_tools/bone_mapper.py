@@ -2,7 +2,7 @@ import bpy
 import json
 import os
 
-from bpy.types import Panel, Operator, PropertyGroup
+from bpy.types import Panel, Operator, PropertyGroup, UIList
 from bpy.props import (
     PointerProperty,
     CollectionProperty,
@@ -180,6 +180,8 @@ class T8BoneMapperSettings(PropertyGroup):
 # ---------------------------------------------------------------------------
 # Operators
 # ---------------------------------------------------------------------------
+
+
 
 class T8TOOLS_OT_BoneMapper_AddRow(Operator):
     bl_idname = "t8tools.bone_mapper_add_row"
@@ -546,6 +548,54 @@ class T8TOOLS_OT_BoneMapper_AddRowsFromSelection(Operator):
 # UI Panel
 # ---------------------------------------------------------------------------
 
+class T8TOOLS_UL_BoneMapperMappings(UIList):
+    bl_idname = "T8TOOLS_UL_bone_mapper_mappings"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        entry = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row(align=True)
+
+            status_icon = 'CHECKMARK' if entry.is_valid else 'ERROR'
+            custom = entry.custom_bone if entry.custom_bone else "<No custom>"
+            target = entry.target_bone if entry.target_bone else "<No target>"
+
+            row.label(text=f"{custom}  →  {target}", icon=status_icon)
+
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon='BONE_DATA')
+
+    def filter_items(self, context, data, propname):
+        mappings = getattr(data, propname)
+
+        helper_funcs = bpy.types.UI_UL_list
+
+        filter_name = self.filter_name.lower().strip()
+        flags = []
+        neworder = []
+
+        for entry in mappings:
+            custom = entry.custom_bone.lower() if entry.custom_bone else ""
+            target = entry.target_bone.lower() if entry.target_bone else ""
+            status = entry.status.lower() if entry.status else ""
+
+            searchable = f"{custom} {target} {status}"
+
+            if not filter_name or filter_name in searchable:
+                flags.append(self.bitflag_filter_item)
+            else:
+                flags.append(0)
+
+        if self.use_filter_sort_alpha:
+            neworder = helper_funcs.sort_items_by_name(
+                mappings,
+                "custom_bone",
+            )
+
+        return flags, neworder
+
 class VIEW3D_PT_T8Tools_BoneMapper(Panel):
     bl_label = "Bone Mapper"
     bl_idname = "VIEW3D_PT_t8tools_bone_mapper"
@@ -579,20 +629,37 @@ class VIEW3D_PT_T8Tools_BoneMapper(Panel):
             layout.label(text="No mappings yet.")
             layout.label(text="Click Add Mapping to begin.")
         else:
-            for i, entry in enumerate(s.mappings):
+            layout.template_list(
+                "T8TOOLS_UL_bone_mapper_mappings",
+                "",
+                s,
+                "mappings",
+                s,
+                "active_mapping_index",
+                rows=8,
+            )
+
+            if 0 <= s.active_mapping_index < len(s.mappings):
+                entry = s.mappings[s.active_mapping_index]
+
                 box = layout.box()
+                box.label(text=f"Selected Mapping {s.active_mapping_index + 1}")
 
-                header = box.row(align=True)
-                header.label(text=f"Mapping {i + 1}")
-                op = header.operator("t8tools.bone_mapper_remove_row", text="", icon='X')
-                op.index = i
+                if s.custom_rig and s.custom_rig.type == 'ARMATURE':
+                    box.prop_search(entry, "custom_bone", s.custom_rig.data, "bones", text="Custom")
+                else:
+                    box.prop(entry, "custom_bone", text="Custom")
 
-                box.prop_search(entry, "custom_bone", s.custom_rig.data, "bones", text="Custom")
-                box.prop_search(entry, "target_bone", s.target_rig.data, "bones", text="Rename To")
+                if s.target_rig and s.target_rig.type == 'ARMATURE':
+                    box.prop_search(entry, "target_bone", s.target_rig.data, "bones", text="Rename To")
+                else:
+                    box.prop(entry, "target_bone", text="Rename To")
 
-                status_row = box.row()
-                icon = 'CHECKMARK' if entry.is_valid else 'ERROR'
-                status_row.label(text=entry.status, icon=icon)
+                status_icon = 'CHECKMARK' if entry.is_valid else 'ERROR'
+                box.label(text=entry.status, icon=status_icon)
+
+                op = box.operator("t8tools.bone_mapper_remove_row", text="Remove Selected Mapping", icon='X')
+                op.index = s.active_mapping_index
 
         layout.separator()
 
@@ -629,6 +696,7 @@ classes = (
     T8TOOLS_OT_BoneMapper_LoadPreset,
     T8TOOLS_OT_BoneMapper_SelectMappedBones,
     T8TOOLS_OT_BoneMapper_AddRowsFromSelection,
+    T8TOOLS_UL_BoneMapperMappings,
     VIEW3D_PT_T8Tools_BoneMapper,
 )
 

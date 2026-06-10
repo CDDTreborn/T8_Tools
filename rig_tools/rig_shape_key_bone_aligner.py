@@ -55,6 +55,70 @@ def get_selected_bone_names(armature_obj):
     return selected
 
 
+
+def walk_parent_names(armature_obj, bone_name, max_depth):
+    """Return parent bone names from nearest to farthest."""
+    if not armature_obj or armature_obj.type != "ARMATURE":
+        return []
+    bone = armature_obj.data.bones.get(bone_name)
+    names = []
+    depth = 0
+    while bone and bone.parent:
+        if max_depth > 0 and depth >= max_depth:
+            break
+        names.append(bone.parent.name)
+        bone = bone.parent
+        depth += 1
+    return names
+
+
+def walk_descendant_names(armature_obj, bone_name, max_depth):
+    """Return descendant bone names breadth-first up to max_depth. max_depth <= 0 means all."""
+    if not armature_obj or armature_obj.type != "ARMATURE":
+        return []
+    root = armature_obj.data.bones.get(bone_name)
+    if not root:
+        return []
+    output = []
+    queue = [(child, 1) for child in root.children]
+    while queue:
+        bone, depth = queue.pop(0)
+        if max_depth > 0 and depth > max_depth:
+            continue
+        output.append(bone.name)
+        for child in bone.children:
+            queue.append((child, depth + 1))
+    return output
+
+
+def aggregate_child_deltas(armature_obj, bone_name, result_by_bone, max_depth):
+    """Average ready child/descendant deltas, weighted by vertex count when available."""
+    descendants = walk_descendant_names(armature_obj, bone_name, max_depth)
+    usable = []
+    for child_name in descendants:
+        item = result_by_bone.get(child_name)
+        if not item or not item.get("status", "").startswith("ready"):
+            continue
+        delta = item.get("delta_world")
+        if delta is None:
+            continue
+        # Avoid making an auto-parent read from another auto-parent if there are direct child weighted bones available.
+        weight = max(float(item.get("vertex_count", 0)), 1.0)
+        usable.append((child_name, delta, weight, item))
+
+    if not usable:
+        return None, []
+
+    total = Vector((0.0, 0.0, 0.0))
+    weight_sum = 0.0
+    for _child_name, delta, weight, _item in usable:
+        total += delta * weight
+        weight_sum += weight
+
+    if weight_sum <= 1e-8:
+        return None, []
+    return total / weight_sum, usable
+
 def world_center_from_evaluated_vertices(mesh_obj, mesh_eval_data, vertex_indices, weights, use_weighted_average):
     if not vertex_indices:
         return None
@@ -127,29 +191,50 @@ def gather_candidate_bones(props, context):
     mesh_obj = props.mesh_obj
     all_bone_names = [b.name for b in armature_obj.data.bones]
 
+    scoped_names = list(all_bone_names)
+
     if props.bone_name_filter.strip():
         token = props.bone_name_filter.strip().lower()
-        all_bone_names = [name for name in all_bone_names if token in name.lower()]
+        scoped_names = [name for name in scoped_names if token in name.lower()]
 
+    auto_parent_names = set()
+    selected = set()
     if props.only_selected_bones:
         selected = get_selected_bone_names(armature_obj)
         if not selected:
             return [], ["Only Selected Bones is ON, but no bones are selected on the armature."]
-        all_bone_names = [name for name in all_bone_names if name in selected]
+        scoped_names = [name for name in scoped_names if name in selected]
+
+        if props.auto_include_parents:
+            for name in scoped_names:
+                for parent_name in walk_parent_names(armature_obj, name, props.parent_include_depth):
+                    auto_parent_names.add(parent_name)
+
+    # Add auto-included parents after selection/filtering so parent chains are not accidentally left behind.
+    ordered_names = []
+    seen = set()
+    for name in scoped_names + [n for n in all_bone_names if n in auto_parent_names]:
+        if name not in seen:
+            ordered_names.append(name)
+            seen.add(name)
 
     warnings = []
     candidates = []
-    for bone_name in all_bone_names:
+    for bone_name in ordered_names:
         group_name = props.vertex_group_prefix + bone_name + props.vertex_group_suffix
-        if mesh_obj.vertex_groups.get(group_name):
-            candidates.append((bone_name, group_name))
-        elif not props.skip_missing_vertex_groups:
-            candidates.append((bone_name, group_name))
+        has_group = bool(mesh_obj.vertex_groups.get(group_name))
+        is_auto_parent = bone_name in auto_parent_names and bone_name not in selected
 
+        # Even when Skip Missing Groups is enabled, keep auto-included parents and child-fallback bones.
+        # They may have no direct weights but still need a delta from descendants.
+        if has_group or not props.skip_missing_vertex_groups or (props.use_child_delta_fallback and (is_auto_parent or props.auto_include_parents)):
+            candidates.append((bone_name, group_name, is_auto_parent))
+
+    if auto_parent_names:
+        warnings.append(f"Auto Include Parents added {len(auto_parent_names)} parent bone(s) to the scope.")
     if not candidates:
         warnings.append("No candidate bones found. Check bone names versus vertex group names, selected bones, or Bone Name Filter.")
     return candidates, warnings
-
 
 def calculate_bone_deltas(props, context, operator=None):
     armature_obj = props.armature_obj
@@ -201,12 +286,13 @@ def calculate_bone_deltas(props, context, operator=None):
             depsgraph,
         )
 
-        for bone_name, group_name in candidates:
+        for bone_name, group_name, is_auto_parent in candidates:
             if not mesh_obj.vertex_groups.get(group_name):
                 results.append({
                     "bone": bone_name,
                     "group": group_name,
                     "status": "missing_group",
+                    "auto_parent": is_auto_parent,
                     "message": f"No vertex group named '{group_name}'",
                 })
                 continue
@@ -217,6 +303,7 @@ def calculate_bone_deltas(props, context, operator=None):
                     "bone": bone_name,
                     "group": group_name,
                     "status": "too_few_vertices",
+                    "auto_parent": is_auto_parent,
                     "vertex_count": len(indices),
                     "message": f"Only {len(indices)} vertices met threshold",
                 })
@@ -234,6 +321,7 @@ def calculate_bone_deltas(props, context, operator=None):
                     "bone": bone_name,
                     "group": group_name,
                     "status": "bad_center",
+                    "auto_parent": is_auto_parent,
                     "vertex_count": len(indices),
                     "message": "Could not calculate weighted center",
                 })
@@ -251,6 +339,7 @@ def calculate_bone_deltas(props, context, operator=None):
                     "bone": bone_name,
                     "group": group_name,
                     "status": "below_min_move",
+                    "auto_parent": is_auto_parent,
                     "vertex_count": len(indices),
                     "delta_world": delta_world,
                     "delta_length": delta_len,
@@ -267,6 +356,7 @@ def calculate_bone_deltas(props, context, operator=None):
                 "bone": bone_name,
                 "group": group_name,
                 "status": "ready",
+                "auto_parent": is_auto_parent,
                 "vertex_count": len(indices),
                 "center_source": center_source,
                 "center_target": center_target,
@@ -275,6 +365,41 @@ def calculate_bone_deltas(props, context, operator=None):
                 "clamped": clamped,
                 "message": "Ready",
             })
+
+        if props.use_child_delta_fallback:
+            result_by_bone = {item.get("bone"): item for item in results}
+            # A few passes allow a parent to inherit from a child that also inherited from deeper children.
+            max_passes = max(1, props.child_delta_depth if props.child_delta_depth > 0 else 4)
+            for _pass_index in range(max_passes):
+                changed = False
+                for item in results:
+                    if item.get("status") in {"ready", "ready_child_fallback"}:
+                        continue
+                    bone_name = item.get("bone")
+                    delta_world, child_items = aggregate_child_deltas(
+                        armature_obj,
+                        bone_name,
+                        result_by_bone,
+                        props.child_delta_depth,
+                    )
+                    if delta_world is None:
+                        continue
+
+                    delta_len = delta_world.length
+                    if props.limit_max_move and props.max_move_distance > 0 and delta_len > props.max_move_distance:
+                        delta_world = delta_world.normalized() * props.max_move_distance
+                        delta_len = delta_world.length
+                        item["clamped"] = True
+
+                    item["status"] = "ready_child_fallback"
+                    item["vertex_count"] = sum(max(int(child[3].get("vertex_count", 0)), 0) for child in child_items)
+                    item["delta_world"] = delta_world
+                    item["delta_length"] = delta_len
+                    item["fallback_children"] = [child[0] for child in child_items]
+                    item["message"] = f"Using averaged delta from {len(child_items)} descendant bone(s)"
+                    changed = True
+                if not changed:
+                    break
 
     finally:
         if source_mesh:
@@ -307,7 +432,7 @@ def apply_deltas_to_armature(armature_obj, results, props, operator):
         arm_inv = armature_obj.matrix_world.inverted().to_3x3()
 
         for item in results:
-            if item.get("status") != "ready":
+            if not item.get("status", "").startswith("ready"):
                 skipped += 1
                 continue
 
@@ -354,10 +479,16 @@ def build_report_text(results, warnings, title="T8 Shape Key Bone Align Report")
         delta = item.get("delta_world")
         delta_len = item.get("delta_length", 0.0)
         clamp = " CLAMPED" if item.get("clamped") else ""
+        auto = " AUTO_PARENT" if item.get("auto_parent") else ""
+        child_note = ""
+        if item.get("fallback_children"):
+            shown = ",".join(item["fallback_children"][:4])
+            more = "..." if len(item["fallback_children"]) > 4 else ""
+            child_note = f" children=[{shown}{more}]"
         if delta is not None:
-            lines.append(f"{bone:44s} {status:18s} verts={vcount:5d} delta={fmt_vec(delta)} len={delta_len:.6f}{clamp}")
+            lines.append(f"{bone:44s} {status:22s} verts={vcount:5d} delta={fmt_vec(delta)} len={delta_len:.6f}{clamp}{auto}{child_note}")
         else:
-            lines.append(f"{bone:44s} {status:18s} {item.get('message', '')}")
+            lines.append(f"{bone:44s} {status:22s} {item.get('message', '')}{auto}")
     lines.append("=" * 88)
     return "\n".join(lines)
 
@@ -367,7 +498,7 @@ def print_report(results, warnings, title="T8 Shape Key Bone Align Report"):
 
 
 def show_preview_popup(context, results, warnings):
-    ready = [r for r in results if r.get("status") == "ready"]
+    ready = [r for r in results if r.get("status", "").startswith("ready")]
     skipped = len(results) - len(ready)
     largest = sorted(ready, key=lambda r: r.get("delta_length", 0), reverse=True)[:8]
 
@@ -485,6 +616,30 @@ class T8_SKBA_Properties(bpy.types.PropertyGroup):
         description="Skip bones that do not have a matching vertex group on the mesh",
         default=True,
     )
+    auto_include_parents: BoolProperty(
+        name="Auto Include Parents",
+        description="When Only Selected Bones is enabled, automatically add parent bones so child clusters do not detach from their hierarchy",
+        default=True,
+    )
+    parent_include_depth: IntProperty(
+        name="Parent Depth",
+        description="How many parent levels to auto-include from selected bones. 0 means no limit",
+        default=2,
+        min=0,
+        max=16,
+    )
+    use_child_delta_fallback: BoolProperty(
+        name="Use Child Deltas For Empty Parents",
+        description="If a scoped bone has no usable weighted vertices, move it using the averaged delta from ready child/descendant bones",
+        default=True,
+    )
+    child_delta_depth: IntProperty(
+        name="Child Depth",
+        description="How many child levels to search for fallback deltas. 0 means no limit",
+        default=2,
+        min=0,
+        max=16,
+    )
     bone_name_filter: StringProperty(
         name="Bone Filter",
         description="Optional text filter for bone names, such as jaw, neck, eye, clavicle",
@@ -576,7 +731,7 @@ class T8_SKBA_OT_DryRun(bpy.types.Operator):
 
         print_report(results, warnings, "T8 SKBA Dry Run")
         show_preview_popup(context, results, warnings)
-        ready = sum(1 for r in results if r.get("status") == "ready")
+        ready = sum(1 for r in results if r.get("status", "").startswith("ready"))
         skipped = len(results) - ready
         self.report({'INFO'}, f"Dry run complete: {ready} ready, {skipped} skipped. See console for full details.")
         return {'FINISHED'}
@@ -654,6 +809,12 @@ class T8_SKBA_PT_Panel(bpy.types.Panel):
         box.label(text="Bone Scope", icon="BONE_DATA")
         box.prop(props, "only_selected_bones")
         box.prop(props, "skip_missing_vertex_groups")
+        box.prop(props, "auto_include_parents")
+        if props.auto_include_parents:
+            box.prop(props, "parent_include_depth")
+        box.prop(props, "use_child_delta_fallback")
+        if props.use_child_delta_fallback:
+            box.prop(props, "child_delta_depth")
         box.prop(props, "bone_name_filter")
         row = box.row(align=True)
         row.prop(props, "vertex_group_prefix")
