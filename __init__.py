@@ -46,6 +46,7 @@ from .image_tools import (
 
 from .shader_tools import (
     id_system,
+    shader_profile_builder,
 )
 
 from .system_tools import (
@@ -85,6 +86,7 @@ RIG_MODULES = (
 
 SHADER_MODULES = (
     id_system,
+    shader_profile_builder,
 )
 
 FBX_MODULES = (
