@@ -189,6 +189,12 @@ class T8SPB_ProfileSettings(PropertyGroup):
         default="",
     )
 
+    rebuild_prefix: StringProperty(
+        name="Rebuild Prefix",
+        description="Prefix used when generating node groups from a template JSON",
+        default="REBUILT_",
+    )
+
 
 # ============================================================
 # Helpers
@@ -515,6 +521,7 @@ def node_to_dict(node):
         "hide": bool(getattr(node, "hide", False)),
         "mute": bool(getattr(node, "mute", False)),
         "select": bool(getattr(node, "select", False)),
+        "parent": node.parent.name if node.parent else None,
         "inputs": [socket_to_dict(s) for s in node.inputs],
         "outputs": [socket_to_dict(s) for s in node.outputs],
         "properties": get_simple_node_properties(node),
@@ -1017,6 +1024,333 @@ class T8SPB_OT_ScanActiveMaterialGroups(Operator):
         return {"FINISHED"}
 
 
+
+
+# ============================================================
+# Experimental Template Rebuilder - Path B / Phase 2C
+# ============================================================
+
+def _make_unique_name(base_name):
+    """Return a Blender data-block name that is not currently used by node groups."""
+    if base_name not in bpy.data.node_groups:
+        return base_name
+
+    i = 1
+    while f"{base_name}.{i:03d}" in bpy.data.node_groups:
+        i += 1
+    return f"{base_name}.{i:03d}"
+
+
+def _socket_type_from_template(socket_type, fallback="NodeSocketFloat"):
+    if not socket_type:
+        return fallback
+    return socket_type
+
+
+def _clear_node_tree(node_tree):
+    for node in list(node_tree.nodes):
+        node_tree.nodes.remove(node)
+
+
+def _new_interface_socket(node_tree, socket_def, in_out):
+    name = socket_def.get("name", "Socket") or "Socket"
+    socket_type = _socket_type_from_template(socket_def.get("socket_type"), "NodeSocketFloat")
+
+    # Blender 4.x interface API
+    if hasattr(node_tree, "interface") and hasattr(node_tree.interface, "new_socket"):
+        try:
+            return node_tree.interface.new_socket(
+                name=name,
+                in_out=in_out,
+                socket_type=socket_type,
+            )
+        except Exception:
+            # Fallback to float if the original socket type is not accepted.
+            return node_tree.interface.new_socket(
+                name=name,
+                in_out=in_out,
+                socket_type="NodeSocketFloat",
+            )
+
+    # Blender 3.x fallback
+    try:
+        if in_out == "INPUT":
+            return node_tree.inputs.new(socket_type, name)
+        return node_tree.outputs.new(socket_type, name)
+    except Exception:
+        if in_out == "INPUT":
+            return node_tree.inputs.new("NodeSocketFloat", name)
+        return node_tree.outputs.new("NodeSocketFloat", name)
+
+
+def _set_default_value(socket, value):
+    if value is None or not hasattr(socket, "default_value"):
+        return
+    try:
+        socket.default_value = value
+    except Exception:
+        try:
+            # Some socket defaults are vector-like and dislike tuples/lists of the wrong size.
+            for i, v in enumerate(value):
+                if i < len(socket.default_value):
+                    socket.default_value[i] = v
+        except Exception:
+            pass
+
+
+def _set_node_properties(node, props):
+    if not props:
+        return
+
+    for attr, value in props.items():
+        if attr == "image":
+            if value and value in bpy.data.images and hasattr(node, "image"):
+                try:
+                    node.image = bpy.data.images[value]
+                except Exception:
+                    pass
+            continue
+
+        if attr == "color_ramp":
+            ramp_data = value
+            if hasattr(node, "color_ramp") and isinstance(ramp_data, dict):
+                try:
+                    ramp = node.color_ramp
+                    if "interpolation" in ramp_data:
+                        ramp.interpolation = ramp_data["interpolation"]
+                    if "color_mode" in ramp_data and hasattr(ramp, "color_mode"):
+                        ramp.color_mode = ramp_data["color_mode"]
+                    if "hue_interpolation" in ramp_data and hasattr(ramp, "hue_interpolation"):
+                        ramp.hue_interpolation = ramp_data["hue_interpolation"]
+
+                    elements = ramp_data.get("elements", [])
+                    # Ensure matching number of ramp elements.
+                    while len(ramp.elements) < len(elements):
+                        ramp.elements.new(0.5)
+                    while len(ramp.elements) > len(elements) and len(ramp.elements) > 2:
+                        ramp.elements.remove(ramp.elements[-1])
+
+                    for idx, el_data in enumerate(elements):
+                        if idx >= len(ramp.elements):
+                            continue
+                        ramp.elements[idx].position = float(el_data.get("position", ramp.elements[idx].position))
+                        color = el_data.get("color")
+                        if color:
+                            ramp.elements[idx].color = color
+                except Exception:
+                    pass
+            continue
+
+        if hasattr(node, attr):
+            try:
+                setattr(node, attr, value)
+            except Exception:
+                pass
+
+
+def _apply_node_basics(node, node_def):
+    node.name = node_def.get("name", node.name)
+    node.label = node_def.get("label", "")
+    loc = node_def.get("location") or [0.0, 0.0]
+    try:
+        node.location = (float(loc[0]), float(loc[1]))
+    except Exception:
+        pass
+    for attr in ("width", "height", "hide", "mute"):
+        if attr in node_def and hasattr(node, attr):
+            try:
+                setattr(node, attr, node_def[attr])
+            except Exception:
+                pass
+
+
+def _apply_socket_defaults(node, node_def):
+    for idx, s_def in enumerate(node_def.get("inputs", [])):
+        if idx >= len(node.inputs):
+            continue
+        _set_default_value(node.inputs[idx], s_def.get("default_value"))
+
+
+def _find_socket_by_identifier_or_index(sockets, identifier, index, name=""):
+    if identifier:
+        for socket in sockets:
+            if getattr(socket, "identifier", "") == identifier:
+                return socket
+    if index is not None and 0 <= index < len(sockets):
+        return sockets[index]
+    if name:
+        for socket in sockets:
+            if socket.name == name:
+                return socket
+    return None
+
+
+def rebuild_node_groups_from_template_data(template_data, prefix="REBUILT_"):
+    """Create node groups from exported template JSON. Returns (created, warnings)."""
+    group_defs = template_data.get("group_definitions", {}) or {}
+    if not group_defs:
+        return [], ["Template JSON has no group_definitions section."]
+
+    warnings = []
+    created = []
+    name_map = {}
+    tree_map = {}
+
+    # Pass 1: create empty node groups and interfaces.
+    for original_name, g_def in group_defs.items():
+        target_name = _make_unique_name(f"{prefix}{original_name}" if prefix else original_name)
+        node_tree = bpy.data.node_groups.new(target_name, "ShaderNodeTree")
+        name_map[original_name] = target_name
+        tree_map[original_name] = node_tree
+        created.append(target_name)
+
+        interface = g_def.get("interface", {}) or {}
+        for socket_def in interface.get("inputs", []):
+            _new_interface_socket(node_tree, socket_def, "INPUT")
+        for socket_def in interface.get("outputs", []):
+            _new_interface_socket(node_tree, socket_def, "OUTPUT")
+
+    # Pass 2: create nodes.
+    all_node_maps = {}
+    for original_name, g_def in group_defs.items():
+        node_tree = tree_map[original_name]
+        _clear_node_tree(node_tree)
+        node_map = {}
+        all_node_maps[original_name] = node_map
+
+        for node_def in g_def.get("nodes", []):
+            bl_idname = node_def.get("bl_idname", "")
+            if not bl_idname:
+                continue
+            try:
+                node = node_tree.nodes.new(bl_idname)
+            except Exception as ex:
+                warnings.append(f"Skipped node {node_def.get('name', '<unnamed>')} in {original_name}: {bl_idname} could not be created ({ex}).")
+                continue
+
+            _apply_node_basics(node, node_def)
+            _set_node_properties(node, node_def.get("properties", {}))
+
+            # Assign nested node group datablock after the node exists.
+            if bl_idname == "ShaderNodeGroup":
+                ref_name = node_def.get("node_group", "")
+                rebuilt_ref = name_map.get(ref_name)
+                if rebuilt_ref and rebuilt_ref in bpy.data.node_groups:
+                    try:
+                        node.node_tree = bpy.data.node_groups[rebuilt_ref]
+                    except Exception as ex:
+                        warnings.append(f"Could not assign nested group {ref_name} to node {node.name}: {ex}")
+                elif ref_name:
+                    warnings.append(f"Nested group reference not found for node {node.name}: {ref_name}")
+
+            # Defaults should be applied after group assignment because sockets may update.
+            _apply_socket_defaults(node, node_def)
+            node_map[node_def.get("name", node.name)] = node
+
+    # Pass 2.5: Restore frame parent relationships and framed-node positions
+    for original_name, g_def in group_defs.items():
+
+        node_map = all_node_maps.get(original_name, {})
+
+        for node_def in g_def.get("nodes", []):
+
+            parent_name = node_def.get("parent")
+            if not parent_name:
+                continue
+
+            node = node_map.get(node_def.get("name"))
+            parent = node_map.get(parent_name)
+
+            if not node or not parent:
+                continue
+
+            try:
+                node.parent = parent
+
+                # IMPORTANT:
+                # Re-apply location AFTER parenting.
+                # Blender changes coordinate behavior once a node belongs to a frame.
+                loc = node_def.get("location") or [0.0, 0.0]
+                node.location = (float(loc[0]), float(loc[1]))
+
+            except Exception as ex:
+                warnings.append(
+                    f"Failed to parent {node.name} to frame {parent_name}: {ex}"
+                )
+
+    # Pass 3: create links.
+    for original_name, g_def in group_defs.items():
+        node_tree = tree_map[original_name]
+        node_map = all_node_maps.get(original_name, {})
+
+        for link_def in g_def.get("links", []):
+            from_node = node_map.get(link_def.get("from_node"))
+            to_node = node_map.get(link_def.get("to_node"))
+            if not from_node or not to_node:
+                warnings.append(f"Skipped link in {original_name}: missing node {link_def.get('from_node')} -> {link_def.get('to_node')}.")
+                continue
+
+            from_socket = _find_socket_by_identifier_or_index(
+                from_node.outputs,
+                link_def.get("from_socket_identifier", ""),
+                link_def.get("from_socket_index", None),
+                link_def.get("from_socket", ""),
+            )
+            to_socket = _find_socket_by_identifier_or_index(
+                to_node.inputs,
+                link_def.get("to_socket_identifier", ""),
+                link_def.get("to_socket_index", None),
+                link_def.get("to_socket", ""),
+            )
+            if not from_socket or not to_socket:
+                warnings.append(f"Skipped link in {original_name}: missing socket {link_def.get('from_node')}.{link_def.get('from_socket')} -> {link_def.get('to_node')}.{link_def.get('to_socket')}.")
+                continue
+
+            try:
+                node_tree.links.new(from_socket, to_socket)
+            except Exception as ex:
+                warnings.append(f"Skipped link in {original_name}: {ex}")
+
+    return created, warnings
+
+
+class T8SPB_OT_RebuildTemplateGroups(Operator):
+    bl_idname = "t8_shader_profile.rebuild_template_groups"
+    bl_label = "Rebuild Template Groups"
+    bl_description = "Experimental: rebuild node groups from the loaded template JSON"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        settings = get_settings(context)
+
+        if not settings.template_save_path:
+            self.report({"WARNING"}, "No template JSON path set. Load or save a template first.")
+            return {"CANCELLED"}
+
+        try:
+            with open(bpy.path.abspath(settings.template_save_path), "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as ex:
+            self.report({"ERROR"}, f"Failed to read template JSON: {ex}")
+            return {"CANCELLED"}
+
+        created, warnings = rebuild_node_groups_from_template_data(
+            data,
+            prefix=settings.rebuild_prefix,
+        )
+
+        if warnings:
+            print("\n[T8 Shader Profile Builder] Rebuild warnings:")
+            for warning in warnings:
+                print(" -", warning)
+
+        if not created:
+            self.report({"WARNING"}, "No node groups were rebuilt. Check console for details.")
+            return {"CANCELLED"}
+
+        self.report({"INFO"}, f"Rebuilt {len(created)} node groups. Warnings: {len(warnings)}")
+        return {"FINISHED"}
+
 # ============================================================
 # Panels
 # ============================================================
@@ -1123,6 +1457,10 @@ class NODE_PT_T8ShaderProfileBuilder(Panel):
         row.operator("t8_shader_profile.save_template_json", icon="FILE_TICK")
         row.operator("t8_shader_profile.load_template_json", icon="FILE_FOLDER")
 
+        rebuild_row = scanner_box.row(align=True)
+        rebuild_row.prop(settings, "rebuild_prefix", text="Prefix")
+        rebuild_row.operator("t8_shader_profile.rebuild_template_groups", icon="NODETREE")
+
         if settings.loaded_template_name:
             info = scanner_box.box()
             info.label(text=f"Loaded Template: {settings.loaded_template_name}")
@@ -1175,6 +1513,7 @@ CLASSES = (
     T8SPB_OT_SaveTemplateJSON,
     T8SPB_OT_LoadTemplateJSON,
     T8SPB_OT_ScanActiveMaterialGroups,
+    T8SPB_OT_RebuildTemplateGroups,
     NODE_PT_T8ShaderProfileBuilder,
 )
 

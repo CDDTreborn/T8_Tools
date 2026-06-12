@@ -1,5 +1,5 @@
 {
-    "template_name": "SP_t8_basic",
+    "template_name": "New Shader Profile",
     "version": 2,
     "source": {
         "object_name": "Plane",
@@ -188,6 +188,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Color",
@@ -295,6 +296,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [
                         {
@@ -457,6 +459,7 @@
                     "hide": false,
                     "mute": false,
                     "select": true,
+                    "parent": "Frame.008",
                     "inputs": [
                         {
                             "name": "Color",
@@ -531,6 +534,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.007",
                     "inputs": [
                         {
                             "name": "Color",
@@ -596,6 +600,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.002",
                     "inputs": [
                         {
                             "name": "Factor",
@@ -805,6 +810,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.003",
                     "inputs": [
                         {
                             "name": "Factor",
@@ -1014,6 +1020,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.005",
                     "inputs": [
                         {
                             "name": "Color",
@@ -1079,6 +1086,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.003",
                     "inputs": [
                         {
                             "name": "Fac",
@@ -1160,6 +1168,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.001",
                     "inputs": [
                         {
                             "name": "Factor",
@@ -1369,6 +1378,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.004",
                     "inputs": [
                         {
                             "name": "Factor",
@@ -1578,6 +1588,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.003",
                     "inputs": [],
                     "outputs": [
                         {
@@ -1613,6 +1624,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.006",
                     "inputs": [
                         {
                             "name": "Color",
@@ -1678,6 +1690,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.008",
                     "inputs": [
                         {
                             "name": "Factor",
@@ -1887,6 +1900,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame.008",
                     "inputs": [
                         {
                             "name": "Value",
@@ -1950,6 +1964,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": "Frame",
                     "inputs": [
                         {
                             "name": "Factor",
@@ -2159,6 +2174,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2177,6 +2193,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2195,6 +2212,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2213,6 +2231,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2231,6 +2250,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2249,6 +2269,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2267,6 +2288,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2285,6 +2307,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2303,6 +2326,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [],
                     "properties": {}
@@ -2629,6 +2653,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Normal",
@@ -2685,6 +2710,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [
                         {
@@ -2738,6 +2764,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Strength",
@@ -2800,6 +2827,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Color",
@@ -2865,6 +2893,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Red",
@@ -2930,6 +2959,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Fac",
@@ -2990,6 +3020,7 @@
                     "hide": false,
                     "mute": false,
                     "select": true,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Strength",
@@ -3181,6 +3212,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [
                         {
@@ -3209,6 +3241,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [
                         {
                             "name": "Color",
@@ -3252,6 +3285,7 @@
                     "hide": false,
                     "mute": false,
                     "select": false,
+                    "parent": null,
                     "inputs": [],
                     "outputs": [
                         {
