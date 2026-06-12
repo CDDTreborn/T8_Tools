@@ -1,0 +1,3324 @@
+{
+    "template_name": "New Shader Profile",
+    "version": 2,
+    "source": {
+        "object_name": "Plane",
+        "active_material_name": "Material.001"
+    },
+    "groups": [
+        {
+            "group_name": "T8_Shader_Basic",
+            "node_name": "T8_Shader_Basic",
+            "depth": 0,
+            "node_count": 24,
+            "nested_group_count": 2,
+            "inputs": [
+                "ID",
+                "ID Powr",
+                "BaseColor",
+                "RMA",
+                "TSE",
+                "OBD",
+                "Dirt Power",
+                "Normal",
+                "Normal_Add",
+                "Normal_Add Power"
+            ],
+            "outputs": [
+                "Color",
+                "Metallic",
+                "Specular",
+                "Roughness",
+                "Emission",
+                "Normal",
+                "Alpha"
+            ]
+        },
+        {
+            "group_name": "Normal Adj",
+            "node_name": "Normal Adj",
+            "depth": 1,
+            "node_count": 7,
+            "nested_group_count": 0,
+            "inputs": [
+                "Color",
+                "Strength"
+            ],
+            "outputs": [
+                "Normal",
+                "Flipped Normal"
+            ]
+        },
+        {
+            "group_name": "Shared Color",
+            "node_name": "RGB.001",
+            "depth": 1,
+            "node_count": 3,
+            "nested_group_count": 0,
+            "inputs": [],
+            "outputs": [
+                "Color"
+            ]
+        }
+    ],
+    "group_definitions": {
+        "T8_Shader_Basic": {
+            "name": "T8_Shader_Basic",
+            "bl_idname": "ShaderNodeTree",
+            "interface": {
+                "inputs": [
+                    {
+                        "name": "ID",
+                        "identifier": "Socket_8",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "ID Powr",
+                        "identifier": "Socket_9",
+                        "socket_type": "NodeSocketFloat",
+                        "description": "Amount of mixing between the A and B inputs"
+                    },
+                    {
+                        "name": "BaseColor",
+                        "identifier": "Socket_6",
+                        "socket_type": "NodeSocketColor",
+                        "description": "Value of the first color input"
+                    },
+                    {
+                        "name": "RMA",
+                        "identifier": "Socket_5",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "TSE",
+                        "identifier": "Socket_12",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "OBD",
+                        "identifier": "Socket_7",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "Dirt Power",
+                        "identifier": "Socket_10",
+                        "socket_type": "NodeSocketFloat",
+                        "description": "Amount of mixing between the A and B inputs"
+                    },
+                    {
+                        "name": "Normal",
+                        "identifier": "Socket_4",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "Normal_Add",
+                        "identifier": "Socket_15",
+                        "socket_type": "NodeSocketVector",
+                        "description": ""
+                    },
+                    {
+                        "name": "Normal_Add Power",
+                        "identifier": "Socket_16",
+                        "socket_type": "NodeSocketFloat",
+                        "description": ""
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "Color",
+                        "identifier": "Socket_3",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "Metallic",
+                        "identifier": "Socket_2",
+                        "socket_type": "NodeSocketFloat",
+                        "description": ""
+                    },
+                    {
+                        "name": "Specular",
+                        "identifier": "Socket_13",
+                        "socket_type": "NodeSocketFloat",
+                        "description": ""
+                    },
+                    {
+                        "name": "Roughness",
+                        "identifier": "Socket_1",
+                        "socket_type": "NodeSocketFloat",
+                        "description": ""
+                    },
+                    {
+                        "name": "Emission",
+                        "identifier": "Socket_14",
+                        "socket_type": "NodeSocketFloat",
+                        "description": ""
+                    },
+                    {
+                        "name": "Normal",
+                        "identifier": "Socket_0",
+                        "socket_type": "NodeSocketVector",
+                        "description": ""
+                    },
+                    {
+                        "name": "Alpha",
+                        "identifier": "Socket_17",
+                        "socket_type": "NodeSocketFloat",
+                        "description": ""
+                    }
+                ]
+            },
+            "nodes": [
+                {
+                    "name": "Group Output",
+                    "label": "",
+                    "bl_idname": "NodeGroupOutput",
+                    "type": "GROUP_OUTPUT",
+                    "location": [
+                        1191.128173828125,
+                        -338.0328369140625
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Socket_3",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Metallic",
+                            "identifier": "Socket_2",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Specular",
+                            "identifier": "Socket_13",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Roughness",
+                            "identifier": "Socket_1",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Emission",
+                            "identifier": "Socket_14",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Normal",
+                            "identifier": "Socket_0",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Alpha",
+                            "identifier": "Socket_17",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "",
+                            "identifier": "__extend__",
+                            "bl_socket_idname": "",
+                            "type": "CUSTOM",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false
+                        }
+                    ],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Group Input",
+                    "label": "",
+                    "bl_idname": "NodeGroupInput",
+                    "type": "GROUP_INPUT",
+                    "location": [
+                        -978.7334594726562,
+                        -152.14620971679688
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [
+                        {
+                            "name": "ID",
+                            "identifier": "Socket_8",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "ID Powr",
+                            "identifier": "Socket_9",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 1.0
+                        },
+                        {
+                            "name": "BaseColor",
+                            "identifier": "Socket_6",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.4997643232345581,
+                                0.02596348151564598,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "RMA",
+                            "identifier": "Socket_5",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "TSE",
+                            "identifier": "Socket_12",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "OBD",
+                            "identifier": "Socket_7",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Dirt Power",
+                            "identifier": "Socket_10",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.5
+                        },
+                        {
+                            "name": "Normal",
+                            "identifier": "Socket_4",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Normal_Add",
+                            "identifier": "Socket_15",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Normal_Add Power",
+                            "identifier": "Socket_16",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "",
+                            "identifier": "__extend__",
+                            "bl_socket_idname": "",
+                            "type": "CUSTOM",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Normal Adj",
+                    "label": "",
+                    "bl_idname": "ShaderNodeGroup",
+                    "type": "GROUP",
+                    "location": [
+                        30.06640625,
+                        -56.7471923828125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": true,
+                    "parent": "Frame.008",
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Socket_2",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Strength",
+                            "identifier": "Socket_4",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 1.0
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Normal",
+                            "identifier": "Socket_0",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Flipped Normal",
+                            "identifier": "Socket_3",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                1.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {},
+                    "node_group": "Normal Adj"
+                },
+                {
+                    "name": "Separate Color",
+                    "label": "",
+                    "bl_idname": "ShaderNodeSeparateColor",
+                    "type": "SEPARATE_COLOR",
+                    "location": [
+                        29.97979736328125,
+                        -35.67315673828125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.007",
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Red",
+                            "identifier": "Red",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Green",
+                            "identifier": "Green",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Blue",
+                            "identifier": "Blue",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Mix",
+                    "label": "",
+                    "bl_idname": "ShaderNodeMix",
+                    "type": "MIX",
+                    "location": [
+                        30.336956024169922,
+                        -35.980224609375
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.002",
+                    "inputs": [
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.5
+                        },
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.4997643232345581,
+                                0.02596348151564598,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "data_type": "RGBA",
+                        "blend_type": "MULTIPLY",
+                        "factor_mode": "UNIFORM",
+                        "clamp_factor": true,
+                        "clamp_result": false
+                    }
+                },
+                {
+                    "name": "Mix.001",
+                    "label": "",
+                    "bl_idname": "ShaderNodeMix",
+                    "type": "MIX",
+                    "location": [
+                        335.33892822265625,
+                        -36.09965515136719
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.003",
+                    "inputs": [
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.5
+                        },
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "data_type": "RGBA",
+                        "blend_type": "MIX",
+                        "factor_mode": "UNIFORM",
+                        "clamp_factor": true,
+                        "clamp_result": false
+                    }
+                },
+                {
+                    "name": "Separate Color.001",
+                    "label": "",
+                    "bl_idname": "ShaderNodeSeparateColor",
+                    "type": "SEPARATE_COLOR",
+                    "location": [
+                        29.99755859375,
+                        -35.559051513671875
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.005",
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Red",
+                            "identifier": "Red",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Green",
+                            "identifier": "Green",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Blue",
+                            "identifier": "Blue",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Color Ramp",
+                    "label": "",
+                    "bl_idname": "ShaderNodeValToRGB",
+                    "type": "VALTORGB",
+                    "location": [
+                        30.025985717773438,
+                        -140.53994750976562
+                    ],
+                    "width": 240.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.003",
+                    "inputs": [
+                        {
+                            "name": "Fac",
+                            "identifier": "Fac",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.5
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Alpha",
+                            "identifier": "Alpha",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "properties": {
+                        "color_ramp": {
+                            "interpolation": "LINEAR",
+                            "color_mode": "RGB",
+                            "hue_interpolation": "NEAR",
+                            "elements": [
+                                {
+                                    "position": 0.0,
+                                    "color": [
+                                        0.0,
+                                        0.0,
+                                        0.0,
+                                        1.0
+                                    ]
+                                },
+                                {
+                                    "position": 0.07500000298023224,
+                                    "color": [
+                                        1.0,
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Mix.002",
+                    "label": "",
+                    "bl_idname": "ShaderNodeMix",
+                    "type": "MIX",
+                    "location": [
+                        29.78179931640625,
+                        -36.45489501953125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.001",
+                    "inputs": [
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 1.0
+                        },
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "data_type": "RGBA",
+                        "blend_type": "MULTIPLY",
+                        "factor_mode": "UNIFORM",
+                        "clamp_factor": false,
+                        "clamp_result": false
+                    }
+                },
+                {
+                    "name": "Mix.003",
+                    "label": "",
+                    "bl_idname": "ShaderNodeMix",
+                    "type": "MIX",
+                    "location": [
+                        29.6517333984375,
+                        -35.910614013671875
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.004",
+                    "inputs": [
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.5
+                        },
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "data_type": "RGBA",
+                        "blend_type": "MIX",
+                        "factor_mode": "UNIFORM",
+                        "clamp_factor": true,
+                        "clamp_result": false
+                    }
+                },
+                {
+                    "name": "RGB.001",
+                    "label": "",
+                    "bl_idname": "ShaderNodeGroup",
+                    "type": "GROUP",
+                    "location": [
+                        131.85037231445312,
+                        -355.78643798828125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.003",
+                    "inputs": [],
+                    "outputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Socket_0",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "properties": {},
+                    "node_group": "Shared Color"
+                },
+                {
+                    "name": "Separate Color.002",
+                    "label": "",
+                    "bl_idname": "ShaderNodeSeparateColor",
+                    "type": "SEPARATE_COLOR",
+                    "location": [
+                        30.023473739624023,
+                        -36.487152099609375
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.006",
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Red",
+                            "identifier": "Red",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Green",
+                            "identifier": "Green",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Blue",
+                            "identifier": "Blue",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Mix.004",
+                    "label": "",
+                    "bl_idname": "ShaderNodeMix",
+                    "type": "MIX",
+                    "location": [
+                        425.6324462890625,
+                        -35.96905517578125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.008",
+                    "inputs": [
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.5
+                        },
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "data_type": "VECTOR",
+                        "blend_type": "MIX",
+                        "factor_mode": "UNIFORM",
+                        "clamp_factor": true,
+                        "clamp_result": false
+                    }
+                },
+                {
+                    "name": "T8_Shader_Basic",
+                    "label": "T8_Shader_Basic",
+                    "bl_idname": "ShaderNodeMath",
+                    "type": "MATH",
+                    "location": [
+                        30.87274169921875,
+                        -213.1876220703125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame.008",
+                    "inputs": [
+                        {
+                            "name": "Value",
+                            "identifier": "Value",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Value",
+                            "identifier": "Value_001",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.5
+                        },
+                        {
+                            "name": "Value",
+                            "identifier": "Value_002",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.5
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Value",
+                            "identifier": "Value",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "properties": {
+                        "operation": "MULTIPLY",
+                        "use_clamp": true
+                    }
+                },
+                {
+                    "name": "Mix.005",
+                    "label": "",
+                    "bl_idname": "ShaderNodeMix",
+                    "type": "MIX",
+                    "location": [
+                        30.339218139648438,
+                        -36.0892333984375
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": "Frame",
+                    "inputs": [
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Factor",
+                            "identifier": "Factor_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                1.0,
+                                1.0,
+                                1.0,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "A",
+                            "identifier": "A_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "B",
+                            "identifier": "B_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Float",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Vector",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Result",
+                            "identifier": "Result_Rotation",
+                            "bl_socket_idname": "",
+                            "type": "ROTATION",
+                            "enabled": false,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "data_type": "RGBA",
+                        "blend_type": "MIX",
+                        "factor_mode": "UNIFORM",
+                        "clamp_factor": true,
+                        "clamp_result": false
+                    }
+                },
+                {
+                    "name": "Frame",
+                    "label": "Dirt Power",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -47.0,
+                        772.0
+                    ],
+                    "width": 200.0,
+                    "height": 288.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.001",
+                    "label": "ID Blend",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -459.0,
+                        300.0
+                    ],
+                    "width": 200.0,
+                    "height": 288.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.002",
+                    "label": "AO Blend",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -57.0,
+                        455.0
+                    ],
+                    "width": 200.0,
+                    "height": 288.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.003",
+                    "label": "Dirt Setup",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        168.0,
+                        189.0
+                    ],
+                    "width": 505.0,
+                    "height": 464.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.004",
+                    "label": "Dirt Blend",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        798.0,
+                        486.0
+                    ],
+                    "width": 200.0,
+                    "height": 288.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.005",
+                    "label": "OBD Split",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -373.0,
+                        -122.0
+                    ],
+                    "width": 200.0,
+                    "height": 209.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.006",
+                    "label": "TSE Split",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -32.0,
+                        -338.0
+                    ],
+                    "width": 200.0,
+                    "height": 209.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.007",
+                    "label": "RMA Split",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -368.0,
+                        -494.0
+                    ],
+                    "width": 200.0,
+                    "height": 209.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Frame.008",
+                    "label": "Normals Setup",
+                    "bl_idname": "NodeFrame",
+                    "type": "FRAME",
+                    "location": [
+                        -618.0,
+                        -729.0
+                    ],
+                    "width": 596.0,
+                    "height": 391.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [],
+                    "properties": {}
+                }
+            ],
+            "links": [
+                {
+                    "from_node": "Color Ramp",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Color",
+                    "from_socket_index": 0,
+                    "to_node": "Mix.001",
+                    "to_socket": "Factor",
+                    "to_socket_identifier": "Factor_Float",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Separate Color",
+                    "from_socket": "Blue",
+                    "from_socket_identifier": "Blue",
+                    "from_socket_index": 2,
+                    "to_node": "Mix",
+                    "to_socket": "B",
+                    "to_socket_identifier": "B_Color",
+                    "to_socket_index": 7
+                },
+                {
+                    "from_node": "Separate Color.001",
+                    "from_socket": "Blue",
+                    "from_socket_identifier": "Blue",
+                    "from_socket_index": 2,
+                    "to_node": "Color Ramp",
+                    "to_socket": "Fac",
+                    "to_socket_identifier": "Fac",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Mix",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Color",
+                    "from_socket_index": 2,
+                    "to_node": "Mix.001",
+                    "to_socket": "A",
+                    "to_socket_identifier": "A_Color",
+                    "to_socket_index": 6
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "RMA",
+                    "from_socket_identifier": "Socket_5",
+                    "from_socket_index": 3,
+                    "to_node": "Separate Color",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "OBD",
+                    "from_socket_identifier": "Socket_7",
+                    "from_socket_index": 5,
+                    "to_node": "Separate Color.001",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Separate Color",
+                    "from_socket": "Red",
+                    "from_socket_identifier": "Red",
+                    "from_socket_index": 0,
+                    "to_node": "Group Output",
+                    "to_socket": "Roughness",
+                    "to_socket_identifier": "Socket_1",
+                    "to_socket_index": 3
+                },
+                {
+                    "from_node": "Separate Color",
+                    "from_socket": "Green",
+                    "from_socket_identifier": "Green",
+                    "from_socket_index": 1,
+                    "to_node": "Group Output",
+                    "to_socket": "Metallic",
+                    "to_socket_identifier": "Socket_2",
+                    "to_socket_index": 1
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "ID",
+                    "from_socket_identifier": "Socket_8",
+                    "from_socket_index": 0,
+                    "to_node": "Mix.002",
+                    "to_socket": "B",
+                    "to_socket_identifier": "B_Color",
+                    "to_socket_index": 7
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "BaseColor",
+                    "from_socket_identifier": "Socket_6",
+                    "from_socket_index": 2,
+                    "to_node": "Mix.002",
+                    "to_socket": "A",
+                    "to_socket_identifier": "A_Color",
+                    "to_socket_index": 6
+                },
+                {
+                    "from_node": "Mix.002",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Color",
+                    "from_socket_index": 2,
+                    "to_node": "Mix",
+                    "to_socket": "A",
+                    "to_socket_identifier": "A_Color",
+                    "to_socket_index": 6
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "ID Powr",
+                    "from_socket_identifier": "Socket_9",
+                    "from_socket_index": 1,
+                    "to_node": "Mix.002",
+                    "to_socket": "Factor",
+                    "to_socket_identifier": "Factor_Float",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Mix.001",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Color",
+                    "from_socket_index": 2,
+                    "to_node": "Mix.003",
+                    "to_socket": "B",
+                    "to_socket_identifier": "B_Color",
+                    "to_socket_index": 7
+                },
+                {
+                    "from_node": "Mix",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Color",
+                    "from_socket_index": 2,
+                    "to_node": "Mix.003",
+                    "to_socket": "A",
+                    "to_socket_identifier": "A_Color",
+                    "to_socket_index": 6
+                },
+                {
+                    "from_node": "Mix.003",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Color",
+                    "from_socket_index": 2,
+                    "to_node": "Group Output",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Socket_3",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "RGB.001",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Socket_0",
+                    "from_socket_index": 0,
+                    "to_node": "Mix.001",
+                    "to_socket": "B",
+                    "to_socket_identifier": "B_Color",
+                    "to_socket_index": 7
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "TSE",
+                    "from_socket_identifier": "Socket_12",
+                    "from_socket_index": 4,
+                    "to_node": "Separate Color.002",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Separate Color.002",
+                    "from_socket": "Green",
+                    "from_socket_identifier": "Green",
+                    "from_socket_index": 1,
+                    "to_node": "Group Output",
+                    "to_socket": "Specular",
+                    "to_socket_identifier": "Socket_13",
+                    "to_socket_index": 2
+                },
+                {
+                    "from_node": "Separate Color.002",
+                    "from_socket": "Blue",
+                    "from_socket_identifier": "Blue",
+                    "from_socket_index": 2,
+                    "to_node": "Group Output",
+                    "to_socket": "Emission",
+                    "to_socket_identifier": "Socket_14",
+                    "to_socket_index": 4
+                },
+                {
+                    "from_node": "Mix.004",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Vector",
+                    "from_socket_index": 1,
+                    "to_node": "Group Output",
+                    "to_socket": "Normal",
+                    "to_socket_identifier": "Socket_0",
+                    "to_socket_index": 5
+                },
+                {
+                    "from_node": "T8_Shader_Basic",
+                    "from_socket": "Value",
+                    "from_socket_identifier": "Value",
+                    "from_socket_index": 0,
+                    "to_node": "Mix.004",
+                    "to_socket": "Factor",
+                    "to_socket_identifier": "Factor_Float",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Normal_Add Power",
+                    "from_socket_identifier": "Socket_16",
+                    "from_socket_index": 9,
+                    "to_node": "T8_Shader_Basic",
+                    "to_socket": "Value",
+                    "to_socket_identifier": "Value",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Normal_Add",
+                    "from_socket_identifier": "Socket_15",
+                    "from_socket_index": 8,
+                    "to_node": "Mix.004",
+                    "to_socket": "B",
+                    "to_socket_identifier": "B_Vector",
+                    "to_socket_index": 5
+                },
+                {
+                    "from_node": "Separate Color.001",
+                    "from_socket": "Red",
+                    "from_socket_identifier": "Red",
+                    "from_socket_index": 0,
+                    "to_node": "Group Output",
+                    "to_socket": "Alpha",
+                    "to_socket_identifier": "Socket_17",
+                    "to_socket_index": 6
+                },
+                {
+                    "from_node": "Mix.005",
+                    "from_socket": "Result",
+                    "from_socket_identifier": "Result_Color",
+                    "from_socket_index": 2,
+                    "to_node": "Mix.003",
+                    "to_socket": "Factor",
+                    "to_socket_identifier": "Factor_Float",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Normal Adj",
+                    "from_socket": "Flipped Normal",
+                    "from_socket_identifier": "Socket_3",
+                    "from_socket_index": 1,
+                    "to_node": "Mix.004",
+                    "to_socket": "A",
+                    "to_socket_identifier": "A_Vector",
+                    "to_socket_index": 4
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Normal",
+                    "from_socket_identifier": "Socket_4",
+                    "from_socket_index": 7,
+                    "to_node": "Normal Adj",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Socket_2",
+                    "to_socket_index": 0
+                }
+            ]
+        },
+        "Normal Adj": {
+            "name": "Normal Adj",
+            "bl_idname": "ShaderNodeTree",
+            "interface": {
+                "inputs": [
+                    {
+                        "name": "Color",
+                        "identifier": "Socket_2",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    },
+                    {
+                        "name": "Strength",
+                        "identifier": "Socket_4",
+                        "socket_type": "NodeSocketFloat",
+                        "description": "Strength of the normal mapping effect"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "Normal",
+                        "identifier": "Socket_0",
+                        "socket_type": "NodeSocketVector",
+                        "description": ""
+                    },
+                    {
+                        "name": "Flipped Normal",
+                        "identifier": "Socket_3",
+                        "socket_type": "NodeSocketVector",
+                        "description": ""
+                    }
+                ]
+            },
+            "nodes": [
+                {
+                    "name": "Group Output",
+                    "label": "",
+                    "bl_idname": "NodeGroupOutput",
+                    "type": "GROUP_OUTPUT",
+                    "location": [
+                        428.59954833984375,
+                        109.98678588867188
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Normal",
+                            "identifier": "Socket_0",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "Flipped Normal",
+                            "identifier": "Socket_3",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        },
+                        {
+                            "name": "",
+                            "identifier": "__extend__",
+                            "bl_socket_idname": "",
+                            "type": "CUSTOM",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false
+                        }
+                    ],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "Group Input",
+                    "label": "",
+                    "bl_idname": "NodeGroupInput",
+                    "type": "GROUP_INPUT",
+                    "location": [
+                        -511.6246337890625,
+                        112.03199005126953
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Socket_2",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "Strength",
+                            "identifier": "Socket_4",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 1.0
+                        },
+                        {
+                            "name": "",
+                            "identifier": "__extend__",
+                            "bl_socket_idname": "",
+                            "type": "CUSTOM",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Normal Map",
+                    "label": "",
+                    "bl_idname": "ShaderNodeNormalMap",
+                    "type": "NORMAL_MAP",
+                    "location": [
+                        227.17221069335938,
+                        29.409013748168945
+                    ],
+                    "width": 150.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Strength",
+                            "identifier": "Strength",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 1.0
+                        },
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                1.0,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Normal",
+                            "identifier": "Normal",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "space": "TANGENT",
+                        "uv_map": ""
+                    }
+                },
+                {
+                    "name": "Separate Color.001",
+                    "label": "",
+                    "bl_idname": "ShaderNodeSeparateColor",
+                    "type": "SEPARATE_COLOR",
+                    "location": [
+                        -183.20645141601562,
+                        61.053863525390625
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Red",
+                            "identifier": "Red",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Green",
+                            "identifier": "Green",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Blue",
+                            "identifier": "Blue",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Combine Color",
+                    "label": "",
+                    "bl_idname": "ShaderNodeCombineColor",
+                    "type": "COMBINE_COLOR",
+                    "location": [
+                        21.766380310058594,
+                        59.11433410644531
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Red",
+                            "identifier": "Red",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Green",
+                            "identifier": "Green",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        },
+                        {
+                            "name": "Blue",
+                            "identifier": "Blue",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 0.0
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Invert Color",
+                    "label": "",
+                    "bl_idname": "ShaderNodeInvert",
+                    "type": "INVERT",
+                    "location": [
+                        -181.9761962890625,
+                        -112.36390686035156
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Fac",
+                            "identifier": "Fac",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false,
+                            "default_value": 1.0
+                        },
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.800000011920929,
+                                0.800000011920929,
+                                0.800000011920929,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Normal Map.001",
+                    "label": "",
+                    "bl_idname": "ShaderNodeNormalMap",
+                    "type": "NORMAL_MAP",
+                    "location": [
+                        -23.862831115722656,
+                        266.251953125
+                    ],
+                    "width": 150.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": true,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Strength",
+                            "identifier": "Strength",
+                            "bl_socket_idname": "",
+                            "type": "VALUE",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": 1.0
+                        },
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                1.0,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "name": "Normal",
+                            "identifier": "Normal",
+                            "bl_socket_idname": "",
+                            "type": "VECTOR",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.0,
+                                0.0,
+                                0.0
+                            ]
+                        }
+                    ],
+                    "properties": {
+                        "space": "TANGENT",
+                        "uv_map": ""
+                    }
+                }
+            ],
+            "links": [
+                {
+                    "from_node": "Separate Color.001",
+                    "from_socket": "Red",
+                    "from_socket_identifier": "Red",
+                    "from_socket_index": 0,
+                    "to_node": "Combine Color",
+                    "to_socket": "Red",
+                    "to_socket_identifier": "Red",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Combine Color",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Color",
+                    "from_socket_index": 0,
+                    "to_node": "Normal Map",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 1
+                },
+                {
+                    "from_node": "Separate Color.001",
+                    "from_socket": "Green",
+                    "from_socket_identifier": "Green",
+                    "from_socket_index": 1,
+                    "to_node": "Invert Color",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 1
+                },
+                {
+                    "from_node": "Separate Color.001",
+                    "from_socket": "Blue",
+                    "from_socket_identifier": "Blue",
+                    "from_socket_index": 2,
+                    "to_node": "Combine Color",
+                    "to_socket": "Blue",
+                    "to_socket_identifier": "Blue",
+                    "to_socket_index": 2
+                },
+                {
+                    "from_node": "Invert Color",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Color",
+                    "from_socket_index": 0,
+                    "to_node": "Combine Color",
+                    "to_socket": "Green",
+                    "to_socket_identifier": "Green",
+                    "to_socket_index": 1
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Socket_2",
+                    "from_socket_index": 0,
+                    "to_node": "Separate Color.001",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Socket_2",
+                    "from_socket_index": 0,
+                    "to_node": "Normal Map.001",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Color",
+                    "to_socket_index": 1
+                },
+                {
+                    "from_node": "Normal Map.001",
+                    "from_socket": "Normal",
+                    "from_socket_identifier": "Normal",
+                    "from_socket_index": 0,
+                    "to_node": "Group Output",
+                    "to_socket": "Normal",
+                    "to_socket_identifier": "Socket_0",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Normal Map",
+                    "from_socket": "Normal",
+                    "from_socket_identifier": "Normal",
+                    "from_socket_index": 0,
+                    "to_node": "Group Output",
+                    "to_socket": "Flipped Normal",
+                    "to_socket_identifier": "Socket_3",
+                    "to_socket_index": 1
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Strength",
+                    "from_socket_identifier": "Socket_4",
+                    "from_socket_index": 1,
+                    "to_node": "Normal Map.001",
+                    "to_socket": "Strength",
+                    "to_socket_identifier": "Strength",
+                    "to_socket_index": 0
+                },
+                {
+                    "from_node": "Group Input",
+                    "from_socket": "Strength",
+                    "from_socket_identifier": "Socket_4",
+                    "from_socket_index": 1,
+                    "to_node": "Normal Map",
+                    "to_socket": "Strength",
+                    "to_socket_identifier": "Strength",
+                    "to_socket_index": 0
+                }
+            ]
+        },
+        "Shared Color": {
+            "name": "Shared Color",
+            "bl_idname": "ShaderNodeTree",
+            "interface": {
+                "inputs": [],
+                "outputs": [
+                    {
+                        "name": "Color",
+                        "identifier": "Socket_0",
+                        "socket_type": "NodeSocketColor",
+                        "description": ""
+                    }
+                ]
+            },
+            "nodes": [
+                {
+                    "name": "Group Input",
+                    "label": "",
+                    "bl_idname": "NodeGroupInput",
+                    "type": "GROUP_INPUT",
+                    "location": [
+                        -241.6831817626953,
+                        -39.24932861328125
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [
+                        {
+                            "name": "",
+                            "identifier": "__extend__",
+                            "bl_socket_idname": "",
+                            "type": "CUSTOM",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false
+                        }
+                    ],
+                    "properties": {}
+                },
+                {
+                    "name": "Group Output",
+                    "label": "",
+                    "bl_idname": "NodeGroupOutput",
+                    "type": "GROUP_OUTPUT",
+                    "location": [
+                        147.43911743164062,
+                        -11.282846450805664
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Socket_0",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.5,
+                                0.5,
+                                0.5,
+                                1.0
+                            ]
+                        },
+                        {
+                            "name": "",
+                            "identifier": "__extend__",
+                            "bl_socket_idname": "",
+                            "type": "CUSTOM",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": false
+                        }
+                    ],
+                    "outputs": [],
+                    "properties": {}
+                },
+                {
+                    "name": "RGB",
+                    "label": "",
+                    "bl_idname": "ShaderNodeRGB",
+                    "type": "RGB",
+                    "location": [
+                        -55.697471618652344,
+                        22.864831924438477
+                    ],
+                    "width": 140.0,
+                    "height": 100.0,
+                    "hide": false,
+                    "mute": false,
+                    "select": false,
+                    "parent": null,
+                    "inputs": [],
+                    "outputs": [
+                        {
+                            "name": "Color",
+                            "identifier": "Color",
+                            "bl_socket_idname": "",
+                            "type": "RGBA",
+                            "enabled": true,
+                            "hide": false,
+                            "is_linked": true,
+                            "default_value": [
+                                0.1626458615064621,
+                                0.0005703518982045352,
+                                0.0,
+                                1.0
+                            ]
+                        }
+                    ],
+                    "properties": {}
+                }
+            ],
+            "links": [
+                {
+                    "from_node": "RGB",
+                    "from_socket": "Color",
+                    "from_socket_identifier": "Color",
+                    "from_socket_index": 0,
+                    "to_node": "Group Output",
+                    "to_socket": "Color",
+                    "to_socket_identifier": "Socket_0",
+                    "to_socket_index": 0
+                }
+            ]
+        }
+    }
+}
