@@ -1185,42 +1185,6 @@ def _find_socket_by_identifier_or_index(sockets, identifier, index, name=""):
     return None
 
 
-def _find_socket_for_rebuild_link(node, socket_collection, identifier, index, name=""):
-    """Find sockets during rebuild.
-
-    Blender regenerates interface socket identifiers when node groups are recreated.
-    For Group Input, Group Output, and nested ShaderNodeGroup sockets, the saved
-    identifier may no longer exist or may refer to a different socket. In those
-    cases, the socket name is the stable target. For ordinary nodes, identifiers
-    and indices are usually more reliable because sockets like Mix have repeated
-    names such as A, B, and Factor.
-    """
-
-    # Group interfaces and nested group nodes get regenerated identifiers.
-    # Prefer name because the exported interface order/name is user-authored and stable.
-    if getattr(node, "bl_idname", "") in {"NodeGroupInput", "NodeGroupOutput", "ShaderNodeGroup"}:
-        if name:
-            for socket in socket_collection:
-                if socket.name == name:
-                    return socket
-
-    # Ordinary node sockets usually keep identifiers stable.
-    if identifier:
-        for socket in socket_collection:
-            if getattr(socket, "identifier", "") == identifier:
-                return socket
-
-    if index is not None and 0 <= index < len(socket_collection):
-        return socket_collection[index]
-
-    if name:
-        for socket in socket_collection:
-            if socket.name == name:
-                return socket
-
-    return None
-
-
 def rebuild_node_groups_from_template_data(template_data, prefix="REBUILT_"):
     """Create node groups from exported template JSON. Returns (created, warnings)."""
     group_defs = template_data.get("group_definitions", {}) or {}
@@ -1326,15 +1290,13 @@ def rebuild_node_groups_from_template_data(template_data, prefix="REBUILT_"):
                 warnings.append(f"Skipped link in {original_name}: missing node {link_def.get('from_node')} -> {link_def.get('to_node')}.")
                 continue
 
-            from_socket = _find_socket_for_rebuild_link(
-                from_node,
+            from_socket = _find_socket_by_identifier_or_index(
                 from_node.outputs,
                 link_def.get("from_socket_identifier", ""),
                 link_def.get("from_socket_index", None),
                 link_def.get("from_socket", ""),
             )
-            to_socket = _find_socket_for_rebuild_link(
-                to_node,
+            to_socket = _find_socket_by_identifier_or_index(
                 to_node.inputs,
                 link_def.get("to_socket_identifier", ""),
                 link_def.get("to_socket_index", None),
@@ -1387,304 +1349,6 @@ class T8SPB_OT_RebuildTemplateGroups(Operator):
             return {"CANCELLED"}
 
         self.report({"INFO"}, f"Rebuilt {len(created)} node groups. Warnings: {len(warnings)}")
-        return {"FINISHED"}
-
-
-# ============================================================
-# Rebuild Validation / Interface Diagnostics - Path B / Phase 2D
-# ============================================================
-
-def _link_signature_strict(link_def):
-    """Strict link identity using socket identifiers. Useful for detecting Blender identifier drift."""
-    return (
-        link_def.get("from_node", ""),
-        link_def.get("from_socket_identifier", ""),
-        int(link_def.get("from_socket_index", -1)),
-        link_def.get("to_node", ""),
-        link_def.get("to_socket_identifier", ""),
-        int(link_def.get("to_socket_index", -1)),
-    )
-
-
-def _link_signature_functional(link_def):
-    """Functional link identity using socket names + indexes, avoiding regenerated interface identifiers."""
-    return (
-        link_def.get("from_node", ""),
-        link_def.get("from_socket", ""),
-        int(link_def.get("from_socket_index", -1)),
-        link_def.get("to_node", ""),
-        link_def.get("to_socket", ""),
-        int(link_def.get("to_socket_index", -1)),
-    )
-
-
-def _interface_signature(interface_def):
-    interface_def = interface_def or {}
-    inputs = [
-        (s.get("name", ""), s.get("identifier", ""), s.get("socket_type", ""))
-        for s in interface_def.get("inputs", []) or []
-    ]
-    outputs = [
-        (s.get("name", ""), s.get("identifier", ""), s.get("socket_type", ""))
-        for s in interface_def.get("outputs", []) or []
-    ]
-    return inputs, outputs
-
-
-def _print_interface_map(original_name, original_def, rebuilt_tree):
-    rebuilt_def = node_tree_to_dict(rebuilt_tree)
-    orig_inputs, orig_outputs = _interface_signature(original_def.get("interface", {}))
-    reb_inputs, reb_outputs = _interface_signature(rebuilt_def.get("interface", {}))
-
-    def print_rows(title, original_rows, rebuilt_rows):
-        print(f"\n[{original_name}] {title}")
-        print("  IDX | ORIGINAL name / identifier / type  -->  REBUILT name / identifier / type")
-        max_len = max(len(original_rows), len(rebuilt_rows))
-        for idx in range(max_len):
-            o = original_rows[idx] if idx < len(original_rows) else ("<missing>", "", "")
-            r = rebuilt_rows[idx] if idx < len(rebuilt_rows) else ("<missing>", "", "")
-            marker = "OK" if (o[0], o[2]) == (r[0], r[2]) else "DIFF"
-            id_marker = "ID_OK" if o[1] == r[1] else "ID_DRIFT"
-            print(
-                f"  {idx:>3} | {o[0]} / {o[1]} / {o[2]}  -->  "
-                f"{r[0]} / {r[1]} / {r[2]}   [{marker}, {id_marker}]"
-            )
-
-    print_rows("INPUT INTERFACE MAP", orig_inputs, reb_inputs)
-    print_rows("OUTPUT INTERFACE MAP", orig_outputs, reb_outputs)
-
-
-def _validate_single_group(original_name, original_def, rebuilt_tree, print_interface_debug=False):
-    """Compare one template group definition against an existing rebuilt node tree."""
-    issues = []
-    notes = []
-
-    rebuilt_def = node_tree_to_dict(rebuilt_tree)
-
-    # Interface comparison by user-visible name + socket type.
-    orig_inputs, orig_outputs = _interface_signature(original_def.get("interface", {}))
-    reb_inputs, reb_outputs = _interface_signature(rebuilt_def.get("interface", {}))
-
-    orig_inputs_light = [(name, socket_type) for name, _identifier, socket_type in orig_inputs]
-    reb_inputs_light = [(name, socket_type) for name, _identifier, socket_type in reb_inputs]
-    orig_outputs_light = [(name, socket_type) for name, _identifier, socket_type in orig_outputs]
-    reb_outputs_light = [(name, socket_type) for name, _identifier, socket_type in reb_outputs]
-
-    if orig_inputs_light != reb_inputs_light:
-        issues.append(f"[{original_name}] Interface input mismatch by name/type: expected {orig_inputs_light}, got {reb_inputs_light}")
-
-    if orig_outputs_light != reb_outputs_light:
-        issues.append(f"[{original_name}] Interface output mismatch by name/type: expected {orig_outputs_light}, got {reb_outputs_light}")
-
-    # Identifier drift is expected in rebuilt Blender interfaces, but should be visible.
-    if orig_inputs != reb_inputs or orig_outputs != reb_outputs:
-        notes.append(f"[{original_name}] Interface identifiers differ. This may be harmless if name/type order matches.")
-        if print_interface_debug:
-            _print_interface_map(original_name, original_def, rebuilt_tree)
-
-    # Node comparison.
-    orig_nodes = {n.get("name", ""): n for n in original_def.get("nodes", [])}
-    reb_nodes = {n.get("name", ""): n for n in rebuilt_def.get("nodes", [])}
-
-    missing_nodes = sorted(set(orig_nodes) - set(reb_nodes))
-    extra_nodes = sorted(set(reb_nodes) - set(orig_nodes))
-
-    if missing_nodes:
-        issues.append(f"[{original_name}] Missing nodes: {missing_nodes}")
-
-    if extra_nodes:
-        issues.append(f"[{original_name}] Extra nodes: {extra_nodes}")
-
-    for node_name in sorted(set(orig_nodes) & set(reb_nodes)):
-        orig_node = orig_nodes[node_name]
-        reb_node = reb_nodes[node_name]
-
-        if orig_node.get("bl_idname") != reb_node.get("bl_idname"):
-            issues.append(
-                f"[{original_name}] Node type mismatch for {node_name}: "
-                f"expected {orig_node.get('bl_idname')}, got {reb_node.get('bl_idname')}"
-            )
-
-        if orig_node.get("parent") != reb_node.get("parent"):
-            issues.append(
-                f"[{original_name}] Frame parent mismatch for {node_name}: "
-                f"expected {orig_node.get('parent')}, got {reb_node.get('parent')}"
-            )
-
-    # Link comparison.
-    # Functional validation ignores regenerated socket identifiers and checks socket names + indexes.
-    orig_links_func = {_link_signature_functional(link) for link in original_def.get("links", [])}
-    reb_links_func = {_link_signature_functional(link) for link in rebuilt_def.get("links", [])}
-
-    missing_links_func = sorted(orig_links_func - reb_links_func)
-    extra_links_func = sorted(reb_links_func - orig_links_func)
-
-    if missing_links_func:
-        issues.append(f"[{original_name}] Missing functional links: {len(missing_links_func)}")
-        for link in missing_links_func[:20]:
-            issues.append(f"    missing functional link: {link}")
-        if len(missing_links_func) > 20:
-            issues.append(f"    ...and {len(missing_links_func) - 20} more missing functional links")
-
-    if extra_links_func:
-        issues.append(f"[{original_name}] Extra functional links: {len(extra_links_func)}")
-        for link in extra_links_func[:20]:
-            issues.append(f"    extra functional link: {link}")
-        if len(extra_links_func) > 20:
-            issues.append(f"    ...and {len(extra_links_func) - 20} more extra functional links")
-
-    # Strict comparison is diagnostic only. It tells us whether Blender changed identifiers.
-    orig_links_strict = {_link_signature_strict(link) for link in original_def.get("links", [])}
-    reb_links_strict = {_link_signature_strict(link) for link in rebuilt_def.get("links", [])}
-
-    missing_links_strict = sorted(orig_links_strict - reb_links_strict)
-    extra_links_strict = sorted(reb_links_strict - orig_links_strict)
-
-    if missing_links_strict or extra_links_strict:
-        notes.append(
-            f"[{original_name}] Strict identifier link comparison differs: "
-            f"missing={len(missing_links_strict)}, extra={len(extra_links_strict)}. "
-            "If functional links pass, this is likely regenerated Blender socket identifiers."
-        )
-
-    return issues, notes
-
-
-def validate_rebuilt_groups_from_template_data(template_data, prefix="REBUILT_", print_interface_debug=True):
-    """Validate rebuilt node groups against template JSON. Returns (summary, issues, notes)."""
-    group_defs = template_data.get("group_definitions", {}) or {}
-    if not group_defs:
-        return {"checked": 0, "passed": 0, "failed": 0, "missing_groups": 0}, ["Template JSON has no group_definitions section."], []
-
-    issues = []
-    notes = []
-    checked = 0
-    passed = 0
-    failed = 0
-    missing_groups = 0
-
-    for original_name, original_def in group_defs.items():
-        rebuilt_name = f"{prefix}{original_name}" if prefix else original_name
-        rebuilt_tree = bpy.data.node_groups.get(rebuilt_name)
-
-        if not rebuilt_tree:
-            missing_groups += 1
-            failed += 1
-            issues.append(f"[{original_name}] Missing rebuilt group: {rebuilt_name}")
-            continue
-
-        checked += 1
-        group_issues, group_notes = _validate_single_group(
-            original_name,
-            original_def,
-            rebuilt_tree,
-            print_interface_debug=print_interface_debug,
-        )
-
-        if group_issues:
-            failed += 1
-            issues.extend(group_issues)
-        else:
-            passed += 1
-
-        notes.extend(group_notes)
-
-    summary = {
-        "checked": checked,
-        "passed": passed,
-        "failed": failed,
-        "missing_groups": missing_groups,
-    }
-
-    return summary, issues, notes
-
-
-class T8SPB_OT_ValidateRebuiltGroups(Operator):
-    bl_idname = "t8_shader_profile.validate_rebuilt_groups"
-    bl_label = "Validate Rebuilt Groups"
-    bl_description = "Compare rebuilt node groups against the loaded template JSON"
-    bl_options = {"REGISTER"}
-
-    def execute(self, context):
-        settings = get_settings(context)
-
-        if not settings.template_save_path:
-            self.report({"WARNING"}, "No template JSON path set. Load or save a template first.")
-            return {"CANCELLED"}
-
-        try:
-            with open(bpy.path.abspath(settings.template_save_path), "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception as ex:
-            self.report({"ERROR"}, f"Failed to read template JSON: {ex}")
-            return {"CANCELLED"}
-
-        summary, issues, notes = validate_rebuilt_groups_from_template_data(
-            data,
-            prefix=settings.rebuild_prefix,
-            print_interface_debug=True,
-        )
-
-        print("\n[T8 Shader Profile Builder] Rebuild validation:")
-        print(f"Checked groups: {summary['checked']}")
-        print(f"Passed groups: {summary['passed']}")
-        print(f"Failed groups: {summary['failed']}")
-        print(f"Missing rebuilt groups: {summary['missing_groups']}")
-
-        if notes:
-            print("\nValidation notes:")
-            for note in notes:
-                print(" -", note)
-
-        if issues:
-            print("\nValidation issues:")
-            for issue in issues:
-                print(" -", issue)
-
-            self.report({"WARNING"}, f"Validation found issues. Passed {summary['passed']} / {summary['checked']} checked groups. See console.")
-            return {"FINISHED"}
-
-        self.report({"INFO"}, f"Functional validation passed: {summary['passed']} rebuilt groups matched. See console for identifier notes.")
-        return {"FINISHED"}
-
-
-class T8SPB_OT_DumpInterfaceMap(Operator):
-    bl_idname = "t8_shader_profile.dump_interface_map"
-    bl_label = "Dump Interface Map"
-    bl_description = "Print original vs rebuilt interface socket names, identifiers, and types"
-    bl_options = {"REGISTER"}
-
-    def execute(self, context):
-        settings = get_settings(context)
-
-        if not settings.template_save_path:
-            self.report({"WARNING"}, "No template JSON path set. Load or save a template first.")
-            return {"CANCELLED"}
-
-        try:
-            with open(bpy.path.abspath(settings.template_save_path), "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception as ex:
-            self.report({"ERROR"}, f"Failed to read template JSON: {ex}")
-            return {"CANCELLED"}
-
-        group_defs = data.get("group_definitions", {}) or {}
-        if not group_defs:
-            self.report({"WARNING"}, "Template JSON has no group_definitions section.")
-            return {"CANCELLED"}
-
-        print("\n[T8 Shader Profile Builder] Interface Map Dump:")
-        count = 0
-        for original_name, original_def in group_defs.items():
-            rebuilt_name = f"{settings.rebuild_prefix}{original_name}" if settings.rebuild_prefix else original_name
-            rebuilt_tree = bpy.data.node_groups.get(rebuilt_name)
-            if not rebuilt_tree:
-                print(f"\n[{original_name}] Missing rebuilt group: {rebuilt_name}")
-                continue
-            _print_interface_map(original_name, original_def, rebuilt_tree)
-            count += 1
-
-        self.report({"INFO"}, f"Dumped interface maps for {count} rebuilt groups. See console.")
         return {"FINISHED"}
 
 # ============================================================
@@ -1797,10 +1461,6 @@ class NODE_PT_T8ShaderProfileBuilder(Panel):
         rebuild_row.prop(settings, "rebuild_prefix", text="Prefix")
         rebuild_row.operator("t8_shader_profile.rebuild_template_groups", icon="NODETREE")
 
-        validate_row = scanner_box.row(align=True)
-        validate_row.operator("t8_shader_profile.validate_rebuilt_groups", icon="CHECKMARK")
-        validate_row.operator("t8_shader_profile.dump_interface_map", icon="CONSOLE")
-
         if settings.loaded_template_name:
             info = scanner_box.box()
             info.label(text=f"Loaded Template: {settings.loaded_template_name}")
@@ -1854,8 +1514,6 @@ CLASSES = (
     T8SPB_OT_LoadTemplateJSON,
     T8SPB_OT_ScanActiveMaterialGroups,
     T8SPB_OT_RebuildTemplateGroups,
-    T8SPB_OT_ValidateRebuiltGroups,
-    T8SPB_OT_DumpInterfaceMap,
     NODE_PT_T8ShaderProfileBuilder,
 )
 
