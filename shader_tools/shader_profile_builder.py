@@ -1098,6 +1098,96 @@ def _set_default_value(socket, value):
             pass
 
 
+def _group_io_defaults_from_export(g_def, node_bl_idname, socket_key):
+    """Return exported Group Input/Output defaults by socket name.
+
+    node_bl_idname should be NodeGroupInput or NodeGroupOutput.
+    socket_key should be outputs for Group Input, inputs for Group Output.
+    """
+    defaults = {}
+
+    for node_def in g_def.get("nodes", []):
+        if node_def.get("bl_idname") != node_bl_idname:
+            continue
+
+        for s_def in node_def.get(socket_key, []):
+            name = s_def.get("name", "")
+            if not name or name == "__extend__":
+                continue
+            if "default_value" in s_def:
+                defaults[name] = s_def.get("default_value")
+
+        break
+
+    return defaults
+
+
+def _apply_interface_defaults_from_export(node_tree, g_def):
+    """Restore defaults on the actual node-group interface sockets.
+
+    These are the values visible on the outside of a ShaderNodeGroup instance.
+    Blender regenerates interface identifiers, so match by user-visible socket name.
+    """
+    input_defaults = _group_io_defaults_from_export(g_def, "NodeGroupInput", "outputs")
+    output_defaults = _group_io_defaults_from_export(g_def, "NodeGroupOutput", "inputs")
+
+    # Blender 4.x interface API
+    if hasattr(node_tree, "interface") and hasattr(node_tree.interface, "items_tree"):
+        for item in node_tree.interface.items_tree:
+            if getattr(item, "item_type", "") != "SOCKET":
+                continue
+
+            name = getattr(item, "name", "")
+            in_out = getattr(item, "in_out", "")
+
+            if in_out == "INPUT" and name in input_defaults:
+                _set_default_value(item, input_defaults[name])
+            elif in_out == "OUTPUT" and name in output_defaults:
+                _set_default_value(item, output_defaults[name])
+
+        return
+
+    # Blender 3.x fallback
+    try:
+        for socket in node_tree.inputs:
+            if socket.name in input_defaults:
+                _set_default_value(socket, input_defaults[socket.name])
+        for socket in node_tree.outputs:
+            if socket.name in output_defaults:
+                _set_default_value(socket, output_defaults[socket.name])
+    except Exception:
+        pass
+
+
+def _apply_group_io_node_defaults(node, node_def):
+    """Restore defaults on Group Input outputs and Group Output inputs.
+
+    This keeps the internal node tree display consistent with the exported graph.
+    """
+    if node.bl_idname == "NodeGroupInput":
+        socket_defs = node_def.get("outputs", [])
+        sockets = node.outputs
+    elif node.bl_idname == "NodeGroupOutput":
+        socket_defs = node_def.get("inputs", [])
+        sockets = node.inputs
+    else:
+        return
+
+    # Prefer name matching because rebuilt interface identifiers drift.
+    socket_by_name = {socket.name: socket for socket in sockets}
+
+    for idx, s_def in enumerate(socket_defs):
+        name = s_def.get("name", "")
+        value = s_def.get("default_value")
+
+        socket = socket_by_name.get(name)
+        if socket is None and idx < len(sockets):
+            socket = sockets[idx]
+
+        if socket is not None:
+            _set_default_value(socket, value)
+
+
 def _set_node_properties(node, props):
     if not props:
         return
@@ -1246,6 +1336,9 @@ def rebuild_node_groups_from_template_data(template_data, prefix="REBUILT_"):
         for socket_def in interface.get("outputs", []):
             _new_interface_socket(node_tree, socket_def, "OUTPUT")
 
+        # Restore node-group interface fallback values shown on group instances.
+        _apply_interface_defaults_from_export(node_tree, g_def)
+
     # Pass 2: create nodes.
     all_node_maps = {}
     for original_name, g_def in group_defs.items():
@@ -1281,6 +1374,11 @@ def rebuild_node_groups_from_template_data(template_data, prefix="REBUILT_"):
 
             # Defaults should be applied after group assignment because sockets may update.
             _apply_socket_defaults(node, node_def)
+
+            # Group Input defaults live on outputs, and Group Output defaults live on inputs.
+            # These exposed values matter as failsafe/fallback shader values.
+            _apply_group_io_node_defaults(node, node_def)
+
             node_map[node_def.get("name", node.name)] = node
 
     # Pass 2.5: Restore frame parent relationships and framed-node positions
