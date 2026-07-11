@@ -1,7 +1,6 @@
 import bpy
 import json
 import os
-import shutil
 
 from bpy.types import (
     Panel,
@@ -194,18 +193,6 @@ class T8SPB_ProfileSettings(PropertyGroup):
         name="Rebuild Prefix",
         description="Prefix used when generating node groups from a template JSON",
         default="REBUILT_",
-    )
-
-    export_template_resources: BoolProperty(
-        name="Export Template Resources",
-        description="Copy image textures used inside exported shader node groups into a portable resources folder beside the template JSON",
-        default=False,
-    )
-
-    template_resource_status: StringProperty(
-        name="Template Resource Status",
-        description="Summary of the most recent template resource export/import action",
-        default="",
     )
 
     # UI collapse state
@@ -584,17 +571,6 @@ def node_to_dict(node):
     if node.bl_idname == "ShaderNodeGroup" and getattr(node, "node_tree", None):
         data["node_group"] = node.node_tree.name
 
-    if node.bl_idname == "ShaderNodeTexImage" and getattr(node, "image", None):
-        image = node.image
-        data["image_data"] = {
-            "image_name": getattr(image, "name", ""),
-            "filepath": bpy.path.abspath(getattr(image, "filepath", "")) if getattr(image, "filepath", "") else "",
-            "source": getattr(image, "source", ""),
-            "colorspace": getattr(getattr(image, "colorspace_settings", None), "name", ""),
-            "alpha_mode": getattr(image, "alpha_mode", ""),
-            "file_format": getattr(image, "file_format", ""),
-        }
-
     return data
 
 
@@ -673,190 +649,6 @@ def collect_group_definitions_from_material(mat):
         visit_tree(mat.node_tree)
 
     return definitions
-
-
-def _safe_resource_filename(name, fallback="image"):
-    safe = make_safe_filename(name, fallback)
-    safe = safe.replace(".", "_")
-    return safe or fallback
-
-
-def _image_extension_from_path(path, fallback=".png"):
-    ext = os.path.splitext(path or "")[1]
-    return ext if ext else fallback
-
-
-def _iter_image_texture_nodes_from_template_data(template_data):
-    """Yield (group_name, node_def) for image texture nodes in exported group definitions."""
-    group_defs = template_data.get("group_definitions", {}) or {}
-    for group_name, g_def in group_defs.items():
-        for node_def in g_def.get("nodes", []) or []:
-            if node_def.get("bl_idname") == "ShaderNodeTexImage" and node_def.get("image_data"):
-                yield group_name, node_def
-
-
-def export_template_resources_to_partner_folder(template_data, template_filepath):
-    """Copy image textures referenced by image nodes into a folder beside the JSON.
-
-    The JSON remains the anchor.  A sibling folder named <TemplateName>_Resources
-    stores copied images plus resource_manifest.json.
-    """
-    template_filepath = bpy.path.abspath(template_filepath)
-    template_dir = os.path.dirname(template_filepath) or os.getcwd()
-    template_base = os.path.splitext(os.path.basename(template_filepath))[0]
-    resources_dir = os.path.join(template_dir, f"{template_base}_Resources")
-    images_dir = os.path.join(resources_dir, "images")
-
-    os.makedirs(images_dir, exist_ok=True)
-
-    resources = []
-    warnings = []
-    used_filenames = set()
-
-    for group_name, node_def in _iter_image_texture_nodes_from_template_data(template_data):
-        image_data = node_def.get("image_data", {}) or {}
-        image_name = image_data.get("image_name", "")
-        original_path = image_data.get("filepath", "")
-
-        if not image_name:
-            warnings.append(f"Skipped image node {group_name}/{node_def.get('name', '')}: no image name stored.")
-            continue
-
-        if not original_path or not os.path.exists(original_path):
-            warnings.append(f"Missing image file for {group_name}/{node_def.get('name', '')}: {image_name} ({original_path or 'no filepath'}).")
-            resources.append({
-                "group_name": group_name,
-                "node_name": node_def.get("name", ""),
-                "image_name": image_name,
-                "original_path": original_path,
-                "local_file": "",
-                "colorspace": image_data.get("colorspace", ""),
-                "alpha_mode": image_data.get("alpha_mode", ""),
-                "status": "missing_source_file",
-            })
-            continue
-
-        base_name = _safe_resource_filename(image_name, "image")
-        ext = _image_extension_from_path(original_path)
-        filename = f"{base_name}{ext}"
-        counter = 1
-        while filename.lower() in used_filenames:
-            filename = f"{base_name}_{counter:03d}{ext}"
-            counter += 1
-        used_filenames.add(filename.lower())
-
-        dest_path = os.path.join(images_dir, filename)
-        try:
-            shutil.copy2(original_path, dest_path)
-            local_file = os.path.join("images", filename).replace("\\", "/")
-            status = "copied"
-        except Exception as ex:
-            local_file = ""
-            status = "copy_failed"
-            warnings.append(f"Failed to copy {image_name}: {ex}")
-
-        resources.append({
-            "group_name": group_name,
-            "node_name": node_def.get("name", ""),
-            "image_name": image_name,
-            "original_path": original_path,
-            "local_file": local_file,
-            "colorspace": image_data.get("colorspace", ""),
-            "alpha_mode": image_data.get("alpha_mode", ""),
-            "status": status,
-        })
-
-    manifest = {
-        "version": 1,
-        "template_json": os.path.basename(template_filepath),
-        "resources": resources,
-    }
-
-    manifest_path = os.path.join(resources_dir, "resource_manifest.json")
-    with open(manifest_path, "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=4)
-
-    template_data["resource_package"] = {
-        "folder": f"{template_base}_Resources",
-        "manifest": "resource_manifest.json",
-        "resource_count": len(resources),
-        "copied_count": sum(1 for r in resources if r.get("status") == "copied"),
-        "missing_count": sum(1 for r in resources if r.get("status") != "copied"),
-    }
-
-    return manifest, warnings
-
-
-def _find_partner_resource_manifest(template_data, template_filepath):
-    template_filepath = bpy.path.abspath(template_filepath)
-    template_dir = os.path.dirname(template_filepath) or os.getcwd()
-    template_base = os.path.splitext(os.path.basename(template_filepath))[0]
-
-    package = template_data.get("resource_package", {}) or {}
-    folder_name = package.get("folder") or f"{template_base}_Resources"
-    manifest_name = package.get("manifest") or "resource_manifest.json"
-
-    manifest_path = os.path.join(template_dir, folder_name, manifest_name)
-    if os.path.exists(manifest_path):
-        return manifest_path
-
-    # Fallback for templates saved before resource_package was written.
-    fallback = os.path.join(template_dir, f"{template_base}_Resources", "resource_manifest.json")
-    return fallback if os.path.exists(fallback) else ""
-
-
-def load_template_resources_from_partner_folder(template_data, template_filepath):
-    """Load resource images from the sibling Resources folder and rename them to their original Blender image names."""
-    manifest_path = _find_partner_resource_manifest(template_data, template_filepath)
-    if not manifest_path:
-        return {"loaded": 0, "missing": 0, "manifest": ""}, []
-
-    warnings = []
-    loaded = 0
-    missing = 0
-
-    try:
-        with open(manifest_path, "r", encoding="utf-8") as f:
-            manifest = json.load(f)
-    except Exception as ex:
-        return {"loaded": 0, "missing": 0, "manifest": manifest_path}, [f"Failed to read resource manifest: {ex}"]
-
-    resources_dir = os.path.dirname(manifest_path)
-
-    for item in manifest.get("resources", []) or []:
-        image_name = item.get("image_name", "")
-        local_file = item.get("local_file", "")
-        if not image_name or not local_file:
-            missing += 1
-            warnings.append(f"Missing resource entry for {item.get('group_name', '')}/{item.get('node_name', '')}: {image_name or '<unnamed>'}")
-            continue
-
-        image_path = os.path.join(resources_dir, local_file.replace("/", os.sep))
-        if not os.path.exists(image_path):
-            missing += 1
-            warnings.append(f"Resource file missing: {image_path}")
-            continue
-
-        try:
-            img = bpy.data.images.load(image_path, check_existing=True)
-            # Keep the original image name as the lookup key used by _set_node_properties().
-            img.name = image_name
-            if item.get("colorspace"):
-                try:
-                    img.colorspace_settings.name = item["colorspace"]
-                except Exception:
-                    pass
-            if item.get("alpha_mode") and hasattr(img, "alpha_mode"):
-                try:
-                    img.alpha_mode = item["alpha_mode"]
-                except Exception:
-                    pass
-            loaded += 1
-        except Exception as ex:
-            missing += 1
-            warnings.append(f"Failed to load resource {image_name}: {ex}")
-
-    return {"loaded": loaded, "missing": missing, "manifest": manifest_path}, warnings
 
 
 # ============================================================
@@ -1136,26 +928,11 @@ class T8SPB_OT_SaveTemplateJSON(Operator):
             if folder and not os.path.exists(folder):
                 os.makedirs(folder, exist_ok=True)
 
-            resource_warnings = []
-            resource_message = ""
-            if settings.export_template_resources:
-                manifest, resource_warnings = export_template_resources_to_partner_folder(data, self.filepath)
-                copied = sum(1 for r in manifest.get("resources", []) if r.get("status") == "copied")
-                total = len(manifest.get("resources", []))
-                resource_message = f" Resources: {copied}/{total} copied."
-
             with open(self.filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
 
             settings.template_save_path = self.filepath
-            settings.template_resource_status = resource_message.strip()
-
-            if resource_warnings:
-                print("\n[T8 Shader Profile Builder] Template resource export warnings:")
-                for warning in resource_warnings:
-                    print(" -", warning)
-
-            self.report({"INFO"}, f"Saved shader template with deep node data: {self.filepath}{resource_message}")
+            self.report({"INFO"}, f"Saved shader template with deep node data: {self.filepath}")
             return {"FINISHED"}
 
         except Exception as ex:
@@ -1194,18 +971,7 @@ class T8SPB_OT_LoadTemplateJSON(Operator):
             load_template_from_dict(settings, data)
             settings.template_save_path = self.filepath
 
-            resource_summary, resource_warnings = load_template_resources_from_partner_folder(data, self.filepath)
-            if resource_summary.get("manifest"):
-                settings.template_resource_status = f"Resources loaded: {resource_summary['loaded']} loaded, {resource_summary['missing']} missing"
-            else:
-                settings.template_resource_status = "No partner resource folder found"
-
-            if resource_warnings:
-                print("\n[T8 Shader Profile Builder] Template resource import warnings:")
-                for warning in resource_warnings:
-                    print(" -", warning)
-
-            self.report({"INFO"}, f"Loaded shader template: {settings.loaded_template_name}. {settings.template_resource_status}")
+            self.report({"INFO"}, f"Loaded shader template: {settings.loaded_template_name}")
             return {"FINISHED"}
 
         except Exception as ex:
@@ -1745,14 +1511,6 @@ class T8SPB_OT_RebuildTemplateGroups(Operator):
             self.report({"ERROR"}, f"Failed to read template JSON: {ex}")
             return {"CANCELLED"}
 
-        resource_summary, resource_warnings = load_template_resources_from_partner_folder(data, settings.template_save_path)
-        if resource_summary.get("manifest"):
-            settings.template_resource_status = f"Resources loaded: {resource_summary['loaded']} loaded, {resource_summary['missing']} missing"
-        if resource_warnings:
-            print("\n[T8 Shader Profile Builder] Template resource import warnings:")
-            for warning in resource_warnings:
-                print(" -", warning)
-
         created, warnings = rebuild_node_groups_from_template_data(
             data,
             prefix=settings.rebuild_prefix,
@@ -2187,9 +1945,6 @@ class NODE_PT_T8ShaderProfileBuilder(Panel):
 
         col = box.column(align=True)
         col.prop(settings, "template_save_path")
-        col.prop(settings, "export_template_resources")
-        if settings.template_resource_status:
-            col.label(text=settings.template_resource_status, icon="IMAGE_DATA")
 
         row = col.row(align=True)
         row.operator("t8_shader_profile.scan_active_material_groups", icon="VIEWZOOM")
